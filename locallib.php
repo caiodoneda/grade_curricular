@@ -208,6 +208,7 @@ function gc_save($contextid, $category) {
     $grade->inscricoeseditionid = required_param('inscricoeseditionid', PARAM_INT);
     $grade->studentcohortid = required_param('studentcohortid', PARAM_INT);
     $grade->tutorroleid = required_param('tutorroleid', PARAM_INT);
+    $grade->notecourseid = required_param('notecourseid', PARAM_INT);
     $grade->timemodified = time();
 
     if($grade->minoptionalcourses > $grade->maxoptionalcourses) {

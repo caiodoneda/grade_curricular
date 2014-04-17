@@ -5,6 +5,9 @@ $string['pluginname_desc'] = 'Define a grade curricular de um curso';
 $string['menu_title'] = 'Grade curricular';
 $string['curriculumcontrol'] = 'Controle Curricular';
 
+$string['grade_curricular:view'] = 'Visualizar grade curricular';
+$string['grade_curricular:configure'] = 'Configurar grade curricular';
+
 $string['another'] = 'Há grade curricular definida nas categorias listadas abaixo,
     as quais estão hierarquicamente acima ou abaixo da categoria atual.';
 $string['no_grade_curricular'] = 'Não há grade curricular definida nesta categoria ou em categoria acima.';
@@ -22,14 +25,16 @@ $string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
 $string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
 $string['studentcohort'] = 'Coorte de estudantes: ';
 $string['tutorrole'] = 'Papel de tutor: ';
+$string['notecourse'] = 'Módulo onde seráo guardadadas as anotações dos tutores: ';
+$string['no_notecourse'] = '-- Não serão feitas anotações pelos tutores';
 
 $string['mandatory'] = 'obrigatório';
 $string['optional'] = 'optativo';
 $string['ignore'] = 'não considerar';
 $string['not_classified'] = 'não classificado';
 $string['edition'] = 'Edição da atividade no Sistema de Inscrições: ';
-$string['no_edition'] = 'Não relacionar a edição';
-$string['no_cohort'] = 'Nenhum cohort selecionado';
+$string['no_edition'] = '-- Não relacionar a edição';
+$string['no_cohort'] = '-- Nenhum cohort selecionado';
 
 $string['coursename'] = 'Nome do módulo';
 $string['type'] = 'Tipo';

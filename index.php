@@ -54,8 +54,9 @@ if(!$grade) {
                 $grade->maxoptionalcourses = 0;
                 $grade->optionalatonetime = 0;
                 $grade->inscricoeseditionid = 0;
-                $grade->studentcohortid = 0;
                 $grade->tutorroleid = 0;
+                $grade->studentcohortid = 0;
+                $grade->notecourseid = 0;
             } else {
                 $yesurl = new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'createconfirm'=>1,
                                          'sesskey'=>sesskey()));
@@ -186,8 +187,8 @@ echo html_writer::select($yesno_options, "optionalatonetime", $grade->optionalat
 
 $plugins = core_component::get_plugin_list('local');
 if(isset($plugins['inscricoes'])) {
-    $editions_opt = gc_get_potential_editions($context, $grade->id);
-    $editions_opt[0] = get_string('no_edition', 'local_grade_curricular');
+    $editions_opt = array(0=>get_string('no_edition', 'local_grade_curricular'));
+    $editions_opt += gc_get_potential_editions($context, $grade->id);
     echo html_writer::empty_tag('br');
     echo html_writer::tag('B', get_string('edition', 'local_grade_curricular'));
     echo html_writer::select($editions_opt, "inscricoeseditionid", $grade->inscricoeseditionid, false);
@@ -201,13 +202,21 @@ echo html_writer::empty_tag('br');
 echo html_writer::tag('B', get_string('studentcohort', 'local_grade_curricular'));
 echo html_writer::select($cohorts_opt, "studentcohortid", $grade->studentcohortid, false);
 
+$courses_opt = array();
+$courses_opt[0] = get_string('no_notecourse', 'local_grade_curricular');
+foreach($courses as $c) {
+    $courses_opt[$c->id] = $c->fullname;
+}
+echo html_writer::empty_tag('br');
+echo html_writer::tag('B', get_string('notecourse', 'local_grade_curricular'));
+echo html_writer::select($courses_opt, "notecourseid", $grade->notecourseid, false);
+
 $all_roles = role_get_names();
 $ctx_roles = get_roles_for_contextlevels(CONTEXT_COURSE);
 $roles_opt = array();
 foreach($ctx_roles AS $id=>$roleid) {
     $roles_opt[$roleid] = $all_roles[$roleid]->localname;
 }
-
 echo html_writer::empty_tag('br');
 echo html_writer::tag('B', get_string('tutorrole', 'local_grade_curricular'));
 echo html_writer::select($roles_opt, "tutorroleid", $grade->tutorroleid, false);
