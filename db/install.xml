@@ -40,7 +40,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="inscou_rep_ix" UNIQUE="false" FIELDS="reportid"/>
+        <INDEX NAME="inscou_grc_ix" UNIQUE="false" FIELDS="gradecurricularid"/>
         <INDEX NAME="inscou_cou_ix" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
