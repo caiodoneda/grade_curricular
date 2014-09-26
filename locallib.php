@@ -1,5 +1,7 @@
 <?php
 
+defined('MOODLE_INTERNAL') || die();
+
 function gc_get_cohorts($context) {
     global $DB;
 
