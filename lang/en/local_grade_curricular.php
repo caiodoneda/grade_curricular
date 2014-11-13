@@ -44,3 +44,9 @@ $string['inscribeperiodo'] = 'Périodo de inscrições';
 $string['configurations'] = 'Configurações';
 $string['tutor'] = 'Tutor';
 $string['tutors'] = 'Tutores';
+
+//tabs names
+
+$string['modules'] = 'Módulos';
+$string['gradecurricular'] = 'Grade curricular';
+$string['approval_criteria'] = 'Critério de aprovação';
