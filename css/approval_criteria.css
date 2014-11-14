@@ -1,0 +1,36 @@
+.approval_criteria_content {
+    background-color:#E8E8E8;
+    border:20px solid;
+    border-color:#E8E8E8;
+    border-radius: 5px;
+}
+
+.approval_criteria_content table {
+    width: 50%;
+    background-color:white;
+    margin-left: 5em;
+}
+
+.approval_criteria_content .mandatory_chk {
+    margin-left:5em;
+    margin-top:1em;
+    margin-bottom:1em;
+}
+
+.approval_criteria_content .optative_radio {
+    margin-left:5em;
+    margin-top:1em;
+    margin-bottom:1em;
+}
+
+.approval_criteria_content .option_label {
+    margin-bottom:1em;
+    font-size:1.2em;
+}
+
+.submit_button {
+    margin-top:2em;
+    font-size:1em;
+    width:8em;
+    height:1.8em;
+}

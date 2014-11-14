@@ -25,10 +25,19 @@ $PAGE->set_url($baseurl);
 $PAGE->set_title(get_string('pluginname', 'local_grade_curricular'));
 $PAGE->set_heading($COURSE->fullname);
 
+$category = $DB->get_record('course_categories', array('id'=>$context->instanceid), '*', MUST_EXIST);
+
+$grades = gc_get_grades_curriculares($category);
+$grade = false;
+foreach($grades AS $gr) {
+    if($gr->contextid == $contextid) {
+        $grade = $gr;
+        break;
+    }
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'local_grade_curricular'));
-echo html_writer::empty_tag('BR');
-
 
 $tab_items = array('modules', 'gradecurricular', 'approval_criteria');
 $tabs = array();

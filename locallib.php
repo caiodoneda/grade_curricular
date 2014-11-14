@@ -291,3 +291,5 @@ function gc_save($contextid, $category) {
         $DB->delete_records_select('grade_curricular_courses', $sql, $params);
     }
 }
+
+//Certificates functions
