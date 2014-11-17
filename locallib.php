@@ -293,3 +293,245 @@ function gc_save($contextid, $category) {
 }
 
 //Certificates functions
+
+function get_data($grade_curricular) {
+    global $DB;
+ 
+    $approved_students = get_approved_students($grade_curricular);
+
+    $modules_criteria = $DB->get_record('cert_modules_criteria', array('gradecurricularid'=>$grade_curricular->id));
+    $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('modules_criteria_id'=>$modules_criteria->id));
+
+    //obrigatórios
+    $mandatory_courses = array();    
+    foreach ($modules_to_cert as $mc) {
+        $mandatory_courses[$mc->moduleid] = $DB->get_record('course', array('id'=>$mc->moduleid));
+    }
+    
+    $approved_students = verify_approval($approved_students, $grade_curricular, $mandatory_courses, $modules_type = 1);
+    
+    //optativos
+    $courses = gc_get_grade_courses($grade_curricular->id, true);
+    
+    $elective_courses = array();
+    foreach ($courses as $courseid => $course) {
+        if ($course->type == 2) $elective_courses[$courseid] = $course;
+    }
+
+    $approved_students = verify_approval($approved_students, $grade_curricular, $elective_courses, $modules_type = 2);
+
+    //prepare_data só existe no certificados, então essa função retorna apenas o estudantes aprovados.
+    //return prepare_data($approved_students, $grade_curricular);
+    return $approved_students;
+}
+
+function get_approved_students($grade_curricular) {
+    global $DB;
+
+    $mandatory_modules = array();
+    $elective_modules = array();
+    
+    $courses = gc_get_grade_courses($grade_curricular->id, true);
+    
+    $approval_criteria = $DB->get_record('cert_approval_criteria', array('gradecurricularid'=>$grade_curricular->id));
+    $approval_modules = $DB->get_records_menu('cert_approval_modules', array('approval_criteria_id'=>$approval_criteria->id, 'selected'=>1), 
+                                              '', 'moduleid, weight');
+    
+    foreach ($courses as $courseid => $course) {
+        if ($course->type == 1) {
+            if (array_key_exists($courseid, $approval_modules)) {
+                $mandatory_modules[$courseid] = $course;
+            }
+        }
+        if ($course->type == 2) $elective_modules[$courseid] = $course;
+    }
+    
+    $data_to_send = $mandatory_data = $elective_data = array();
+ 
+    if (!empty($mandatory_modules)) 
+        $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = 1, $approval_criteria, $approval_modules);
+    if (!empty($elective_modules)) 
+        $elective_data = get_approved_students_by_module_type($grade_curricular, $elective_modules, $module_type = 2, $approval_criteria);
+    
+    
+    $approved_students = array();
+
+    if ($approval_criteria->approval_criteria == "0") {
+        $approved_students = $mandatory_data;
+    } else {
+        $approved_students = array_intersect_key($mandatory_data, $elective_data);
+    }
+    
+    return $approved_students;
+}
+
+function verify_approval($approved_students, $grade_curricular, $courses, $modules_type) {
+    global $DB;
+    
+    
+    $completions_info = array();
+    $activities = array();
+    $course_grade_items = array();
+    foreach($courses AS $id=>$course) {
+        $completions_info[$id] = new completion_info($course);
+        $activities[$id] = $completions_info[$id]->get_activities();
+        $course_grade_items[$id] = grade_item::fetch_course_item($id);
+    }
+
+    foreach ($approved_students as $as) {
+        if (!isset($approved_students[$as->id]->mandatory_approved_courses)) $approved_students[$as->id]->mandatory_approved_courses = array();
+        if (!isset($approved_students[$as->id]->mandatory_not_approved_courses)) $approved_students[$as->id]->mandatory_not_approved_courses = array();
+        if (!isset($approved_students[$as->id]->elective_approved_courses)) $approved_students[$as->id]->elective_approved_courses = array();
+        if (!isset($approved_students[$as->id]->elective_not_approved_courses)) $approved_students[$as->id]->elective_not_approved_courses = array();
+        
+        foreach ($courses as $c) {
+            if ($completions_info[$c->id]->is_course_complete($as->id)){
+                if ($modules_type == 1) {
+                    $approved_students[$as->id]->mandatory_approved_courses[$c->id] = $c->fullname;
+                } elseif ($modules_type == 2) {
+                    $approved_students[$as->id]->elective_approved_courses[$c->id] = $c->fullname;
+                }
+            } else {
+                if ($modules_type == 1) {
+                    $approved_students[$as->id]->mandatory_not_approved_courses[$c->id] = $c->fullname;
+                } elseif ($modules_type == 2) {
+                    $approved_students[$as->id]->elective_not_approved_courses[$c->id] = $c->fullname;
+                }
+            }
+        }
+    }
+
+    return $approved_students;
+}
+
+function prepare_course_grade(&$courses, $approval_modules) {
+    $grade_items = array();
+    
+    foreach($courses AS $courseid=>$course) {
+        $course->grade_item = grade_item::fetch_course_item($courseid);
+        
+        // Se o módulo for do tipo um, então é obrigatório, e caso seu peso não esteja definido, o seu valor será igual a zero.
+        // Se o módulo for do tipo dois, então é optativo, e seu peso é igual a um.
+        if ($course->type == 1) {
+            $course->grade_item->aggregationcoef = isset($approval_modules[$courseid]) ? $approval_modules[$courseid] : 0;        
+        } elseif ($course->type == 2) {
+            $course->grade_item->aggregationcoef = 1;        
+        }
+
+        $grade_items[$course->grade_item->id] =& $course->grade_item;
+    }
+
+    return $grade_items;
+}
+
+function get_approved_students_by_module_type($grade_curricular, $courses, $module_type, $approval_criteria, $approval_modules = array()) {
+    global $DB;
+    
+    $completions_info = array();
+    $activities = array();
+    $course_grade_items = array();
+    foreach($courses AS $id=>$course) {
+        $completions_info[$id] = new completion_info($course);
+        $activities[$id] = $completions_info[$id]->get_activities();
+        $course_grade_items[$id] = grade_item::fetch_course_item($id);
+    }
+    
+    $grade_items = prepare_course_grade($courses, $approval_modules);   
+
+    $grade_category = new grade_category();
+    $grade_category->aggregation = GRADE_AGGREGATE_WEIGHTED_MEAN;
+    
+    $students = gc_get_all_students($grade_curricular);
+    
+    $approved_on_selected_modules = array();
+    $approved_with_score = array(); 
+    
+    foreach($students AS $userid=>$user) {
+        $courses_approved = array();
+        $courses_not_approved = array();
+        $count_optional = 0;
+        $approved = true;
+
+        $grade_values = array();
+  foreach($courses AS $courseid=>$course) {
+            $course_grade = new grade_grade(array('itemid'=>$course->grade_item->id, 'userid'=>$userid));
+            $finalgrade = $course_grade->finalgrade;
+            $grade = grade_format_gradevalue($finalgrade, $course->grade_item, true);
+
+            $grade_values[$course->grade_item->id] = grade_grade::standardise_score($finalgrade, $course->grade_item->grademin, 
+                          $course->grade_item->grademax, 0, 10);
+            
+            
+            if ($module_type == 2) {
+                $context = context_course::instance($courseid); 
+                if (is_enrolled($context, $user)) {
+                    if ($completions_info[$courseid]->is_course_complete($userid)){
+                        $courses_approved[$courseid] = $course->fullname;
+                        $count_optional++;
+                    } else {
+                        $courses_not_approved[$courseid] = $course->fullname;
+                        $approved = false;
+                    }
+                }
+            } elseif ($module_type == 1) {
+                if ($completions_info[$courseid]->is_course_complete($userid)){
+                    $courses_approved[$courseid] = $course->fullname;
+                } else {
+                    $courses_not_approved[$courseid] = $course->fullname;
+                    $approved = false;
+                }
+            }
+  }
+        
+        if ($approved) { 
+            if ($module_type == 2) {
+                if ($count_optional >= $grade_curricular->minoptionalcourses) {
+                    $approved_on_selected_modules[$userid] = $user;
+                } else {
+                    $not_approved_on_selected_modules[$userid] = $user;
+                }
+            } else {
+                $approved_on_selected_modules[$userid] = $user;
+            }
+        } else {
+            $not_approved_on_selected_modules[$userid] = $user;
+        }
+         
+        asort($grade_values, SORT_NUMERIC);
+        $aggregated_grade = $grade_category->aggregate_values($grade_values, $grade_items);
+        $aggregated_grade = round($aggregated_grade, 1);
+        
+        if ($module_type == 1) {
+            if ($aggregated_grade >= $approval_criteria->average_option_grade) {
+                $approved_with_score[$userid] = $user;  
+            } else {
+                $not_approved_with_score[$userid] = $user;  
+            }
+        } elseif ($module_type == 2) {
+            if ($aggregated_grade >= $approval_criteria->approval_criteria_grade) {
+                $approved_with_score[$userid] = $user;  
+            } else {
+                $not_approved_with_score[$userid] = $user;  
+            }
+        }
+    }
+    
+    $users_to_send = array();
+    
+    //Verificar quais usuários serão enviados.
+    if ($module_type == 1) {
+        if ($approval_criteria->approved_modules && $approval_criteria->average_option) 
+            $users_to_send = array_intersect_key($approved_on_selected_modules, $approved_with_score);
+        elseif ($approval_criteria->approved_modules)
+            $users_to_send = $approved_on_selected_modules;
+        elseif ($approval_criteria->average_option)
+            $users_to_send = $approved_with_score;
+    } elseif ($module_type == 2) {
+        if ($approval_criteria->approval_criteria == 'approved')
+            $users_to_send = $approved_on_selected_modules;
+        elseif ($approval_criteria->approval_criteria == 'average')
+            $users_to_send = $approved_with_score;
+    }
+    
+    return $users_to_send;
+}
