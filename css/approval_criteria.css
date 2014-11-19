@@ -1,14 +1,20 @@
-.approval_criteria_content {
-    background-color:#E8E8E8;
-    border:20px solid;
-    border-color:#E8E8E8;
+.approval_criteria_form {
+    background-color:aliceblue;
+    border:10px solid;
+    border-color:aliceblue;
     border-radius: 5px;
+}
+
+.approval_criteria_content {
+    margin-left:5em;
+    margin-top:2em;
+    margin-bottom:2em;
 }
 
 .approval_criteria_content table {
     width: 50%;
-    background-color:white;
-    margin-left: 5em;
+    background-color:lightgray;
+    margin-left:5em;
 }
 
 .approval_criteria_content .mandatory_chk {
@@ -33,4 +39,9 @@
     font-size:1em;
     width:8em;
     height:1.8em;
+}
+
+.course_type_header {
+    font-size:1.5em;
+    color:#004E95;
 }

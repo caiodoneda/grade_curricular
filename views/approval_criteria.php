@@ -22,10 +22,11 @@
 
     echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
     echo html_writer::empty_tag('hidden', array('action'=>'approval_criteria'));
+    echo html_writer::start_tag('div', array('class'=>'approval_criteria_form'));
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_content'));
     
     if (!empty($courses_ob)) {
-        echo html_writer::tag('h2', 'Cursos obrigatórios');
+        echo html_writer::tag('h2', 'Cursos obrigatórios', array('class' => 'course_type_header'));
         
         echo "<div class='mandatory_chk'>";
             echo "<div>";
@@ -67,7 +68,7 @@
     }
 
     if (!empty($courses_opt)) {
-        echo html_writer::tag('h2', 'Cursos optativos');
+        echo html_writer::tag('h2', 'Cursos optativos', array('class'=>'course_type_header'));
         
         echo "<div class='optative_radio'>";
             
@@ -88,6 +89,7 @@
         echo "</div>";
     }
     
+    echo html_writer::end_tag('div');
     echo html_writer::end_tag('div');
     
     echo "<input class='submit_button' type='submit' name='submit' value='Salvar'/>";
