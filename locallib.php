@@ -193,6 +193,175 @@ function gc_get_tutors($grade, $str_groupids) {
     return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSE, 'roleid'=>$roleid));
 }
 
+function gc_save_modules($contextid, $category) {
+    global $DB, $SESSION;
+
+    if (confirm_sesskey()) {
+        $context = context::instance_by_id($contextid, MUST_EXIST);
+        require_capability('local/grade_curricular:configure', $context);
+
+        $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+
+        $types = optional_param_array('type', array(), PARAM_INT);
+        $workloads = optional_param_array('workload', array(), PARAM_INT);
+        $dependencies = optional_param_array('dependencies', array(), PARAM_INT);
+
+        $startdays = optional_param_array('startdays', array(), PARAM_INT);
+        $startmonths = optional_param_array('startmonths', array(), PARAM_INT);
+        $startyears = optional_param_array('startyears', array(), PARAM_INT);
+
+        $enddays = optional_param_array('enddays', array(), PARAM_INT);
+        $endmonths = optional_param_array('endmonths', array(), PARAM_INT);
+        $endyears = optional_param_array('endyears', array(), PARAM_INT);
+
+        $courses = gc_get_potential_courses($category->path, $gradecurricularid);
+
+        $courseids = array();
+        foreach($courses as $c) {
+            if(isset($types[$c->id])) {
+                $grade_course = new stdclass();
+                $grade_course->gradecurricularid = $gradecurricularid;
+                $grade_course->courseid = $c->id;
+
+                $grade_course->type = $types[$c->id];
+                $grade_course->workload = $workloads[$c->id];
+                if($grade_course->workload < 0 || $grade_course->workload > 360) {
+                    $errors[$c->fullname][] = get_string('invalid_workload', 'local_grade_curricular');
+                }
+                $grade_course->coursedependencyid = $dependencies[$c->id];
+                if($dependencies[$c->id] > 0 && !in_array($types[$dependencies[$c->id]], array(1,2))) {
+                    $errors[$c->fullname][] = get_string('dependecy_not_opt_dem', 'local_grade_curricular');
+                }
+                $grade_course->inscribestartdate = make_timestamp($startyears[$c->id], $startmonths[$c->id], $startdays[$c->id]);
+                $grade_course->inscribeenddate = make_timestamp($endyears[$c->id], $endmonths[$c->id], $enddays[$c->id]);
+                if($grade_course->inscribeenddate < $grade_course->inscribestartdate) {
+                    $errors[$c->fullname][] = get_string('end_before_start', 'local_grade_curricular');
+                }
+                $grade_course->timemodified = time();
+                if(empty($c->gradecourseid)) {
+                    $DB->insert_record('grade_curricular_courses', $grade_course);
+                } else {
+                    $grade_course->id = $c->gradecourseid;
+                    $DB->update_record('grade_curricular_courses', $grade_course);
+                }
+                $courseids[] = $c->id;
+            }
+        }
+        if(!empty($errors)) {
+            $SESSION->errors = $errors;
+        }
+
+        if(empty($courseids)) {
+            $DB->delete_records('grade_curricular_courses', array('gradecurricularid'=>$gradecurricularid));
+        } else {
+            list($not_in_sql, $params) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'cid', false);
+            $sql = "gradecurricularid = :gradecurricularid AND courseid {$not_in_sql}";
+            $params['gradecurricularid'] = $gradecurricularid;
+            $DB->delete_records_select('grade_curricular_courses', $sql, $params);
+        }
+    }
+}
+
+function gc_save_grade_options($contextid) {
+    global $DB, $SESSION;
+
+    if (confirm_sesskey()) {
+        $context = context::instance_by_id($contextid, MUST_EXIST);
+        require_capability('local/grade_curricular:configure', $context);
+
+        $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+        
+        if($grade = $DB->get_record('grade_curricular', array('id'=>$gradecurricularid))) {
+        } else {
+            $grade = new stdclass();
+        }
+
+        $errors = array();
+
+        $grade->minoptionalcourses = required_param('minoptionalcourses', PARAM_INT);
+        $grade->maxoptionalcourses = required_param('maxoptionalcourses', PARAM_INT);
+        $grade->optionalatonetime = required_param('optionalatonetime', PARAM_INT);
+        $grade->inscricoeseditionid = required_param('inscricoeseditionid', PARAM_INT);
+        $grade->studentcohortid = required_param('studentcohortid', PARAM_INT);
+        $grade->tutorroleid = required_param('tutorroleid', PARAM_INT);
+        $grade->notecourseid = required_param('notecourseid', PARAM_INT);
+        $grade->timemodified = time();
+
+        if($grade->minoptionalcourses > $grade->maxoptionalcourses) {
+            $errors['Configuração'][] = 'Número mínimo de módulos optativos é superior ao máximo';
+        }
+
+        if($grade->inscricoeseditionid > 0 && $grade->studentcohortid > 0) {
+            $grade->studentcohortid = 0;
+            $errors['Configuração'][] = 'As opções de seleção de edição da atividade e do coorte de estudantes são incompatíveis. A opção de coorte de estudantes foi desativada.';
+        }
+
+        if(empty($grade->tutorroleid)) {
+            $errors['Configuração'][] = 'Papel correspondente a turtor não foi selecionado';
+        }
+
+        if(isset($grade->id)) {
+            $DB->update_record('grade_curricular', $grade);
+        } else {
+            $grade->contextid = $contextid;
+            $grade->id = $DB->insert_record('grade_curricular', $grade);
+        }
+    }
+}
+
+function gc_save_approval_criteria() {
+    if (confirm_sesskey()) {
+        require_capability('local/grade_curricular:configure', $context);
+        // function save_config_approval_form($mformdata, $selected_modules, $peso) {
+        //     global $DB;
+            
+        //     $record = new stdClass();
+        //     $record->gradecurricularid = $mformdata->gradeid;
+        //     isset($mformdata->approved_modules) ? $record->approved_modules = $mformdata->approved_modules : $record->approved_modules = 0;
+        //     isset($mformdata->average_options) ? $record->average_option = $mformdata->average_options : $record->average_option = 0;
+        //     isset($mformdata->average_option_grade) ? $record->average_option_grade = $mformdata->average_option_grade : $record->average_option_grade = 0;
+        //     isset($mformdata->approval_criteria) ? $record->approval_criteria = $mformdata->approval_criteria : $record->approval_criteria = 0;
+        //     isset($mformdata->approval_criteria_grade) ? $record->approval_criteria_grade = $mformdata->approval_criteria_grade : $record->approval_criteria_grade = 0;
+            
+        //     $approval_criteria_id = 0;
+            
+        //     if ($approval_criteria = $DB->get_record('cert_approval_criteria', array('gradecurricularid'=>$mformdata->gradeid))) {
+        //         $record->id = $approval_criteria->id;
+        //         $DB->update_record('cert_approval_criteria', $record);
+        //         $approval_criteria_id = $approval_criteria->id;
+        //     } else {
+        //         $approval_criteria_id = $DB->insert_record('cert_approval_criteria', $record);
+        //     }
+            
+        //     $saved_modules = $DB->get_records_menu('cert_approval_modules', array('approval_criteria_id'=>$approval_criteria_id), '', 'id, moduleid');
+            
+        //     if (!empty($selected_modules)) {
+        //   foreach ($selected_modules as $sm) {
+        //       $module = new stdClass();    
+        //       $module->moduleid = $sm;
+        //             $module->weight = $peso[$sm] > 0 ? $peso[$sm] : 0;
+        //       $module->selected = 1;
+            
+        //       if ($module_to_update = $DB->get_record('cert_approval_modules', array('approval_criteria_id'=>$approval_criteria_id, 'moduleid'=>$sm))) {
+        //           $module->id = $module_to_update->id; 
+        //           $module->approval_criteria_id = $module_to_update->approval_criteria_id;
+        //           $DB->update_record('cert_approval_modules', $module); 
+        //                 unset($saved_modules[$module->id]);
+        //       } else {
+        //                 $module->approval_criteria_id = $approval_criteria_id;
+        //           $DB->insert_record('cert_approval_modules', $module);
+        //       }
+        //   }
+        //     }
+
+        //     foreach ($saved_modules as $saved_module) {
+        //         $DB->set_field('cert_approval_modules', 'selected', 0, array('moduleid'=>$saved_module));
+        //     }
+            
+        // }
+    }
+}
+
 function gc_save($contextid, $category) {
     global $DB, $SESSION;
 
@@ -294,7 +463,7 @@ function gc_save($contextid, $category) {
 
 //Certificates functions
 
-function get_data($grade_curricular) {
+function gc_get_approved_students($grade_curricular) {
     global $DB;
  
     $approved_students = get_approved_students($grade_curricular);

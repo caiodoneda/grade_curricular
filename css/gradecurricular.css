@@ -1,8 +1,7 @@
 .gradecurricular_form {
-    background-color: aliceblue;
+    background-color: #FEF9EC;
     border: 1px solid;
-    border-color: aliceblue;
-    border-radius: 5px;
+    border-color: #FEF9EC;
 }
 
 .gradecurricular_content {
@@ -12,9 +11,8 @@
 }
 
 .gradecurricular_content .optative_max_min {
-    border: 1px solid;
+    border: 1px dotted;
     border-color: dodgerblue;
-    border-radius: 5px;
     width: 25%;
 }
 
@@ -31,14 +29,13 @@
 
 .gradecurricular_content .options {
     margin-top: 1em;
-    border: 1px solid;
+    border: 1px dotted;
     border-color: dodgerblue;
-    border-radius: 5px;
     width: 60%;
 }
 
 .gradecurricular_content .options div{
-   margin-left: 0.8em;
+    margin-left: 0.8em;
     margin-top: 0.8em;
     margin-bottom: 0.8em;
 }

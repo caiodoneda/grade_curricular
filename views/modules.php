@@ -2,12 +2,6 @@
 
 echo "<link href='./css/modules.css' rel='stylesheet'>";
 
-if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
-    require_capability('local/grade_curricular:configure', $context);
-    gc_save($contextid, $category);
-    redirect($baseurl, get_string('changessaved'), 1);
-}
-
 $courses = gc_get_potential_courses($category->path, $grade->id);
 
 echo html_writer::start_tag('DIV', array('class'=>'local_grade_curricular'));
@@ -31,9 +25,10 @@ if(isset($SESSION->errors)) {
     echo $OUTPUT->box_end();
 }
 
-echo html_writer::start_tag('form', array('action'=>$baseurl->out_omit_querystring(), 'method'=>'post'));
+echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
 
 echo html_writer::start_tag('div');
+echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'action', 'value'=>'modules'));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'gradecurricularid', 'value'=>$grade->id));
@@ -95,7 +90,8 @@ echo html_writer::table($table);
 
 echo html_writer::end_tag('div');
 
-echo "<input class='submit_button' type='submit' name='savechanges' value='Salvar'/>";
+echo "<input class='submit_button' type='submit' name='save_modules' value='Salvar'/>";
+echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'savechanges', 'value'=>'save_modules'));
 
 echo html_writer::end_tag('form');
 echo html_writer::end_tag('DIV');

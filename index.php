@@ -80,6 +80,21 @@ if(!$grade) {
     }
 }
 
+switch (optional_param('savechanges', '', PARAM_TEXT)) {
+    case 'save_modules':
+        gc_save_modules($contextid, $category);
+        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'modules')));
+        break;
+    case 'save_grade_options':
+        gc_save_grade_options($contextid);
+        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
+        break;
+    case 'save_approval_criteria':
+        gc_save_approval_criteria($contextid, $category);
+        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
+        break;
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'local_grade_curricular'));
 
@@ -108,6 +123,5 @@ switch ($action) {
         require_once('views/approval_criteria.php');
         break;
 }
-
 
 echo $OUTPUT->footer();

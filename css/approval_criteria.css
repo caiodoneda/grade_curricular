@@ -1,8 +1,7 @@
 .approval_criteria_form {
-    background-color:#F0F8FF;
+    background-color:#FEF9EC;
     border:1px solid;
-    border-color:#F0F8FF;
-    border-radius: 5px;
+    border-color:#FEF9EC;
 }
 
 .approval_criteria_content {
@@ -12,9 +11,8 @@
 }
 
 .approval_criteria_content .approval_criteria_block {
-    border:1px solid;
+    border:1px dotted;
     border-color:dodgerblue;
-    border-radius: 5px;
     width: 90%;
     margin-left: 3em;
 }
