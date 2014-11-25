@@ -17,7 +17,7 @@
         $gc_approval_modules = $DB->get_records_menu('gc_approval_modules', 
                                array('approval_criteria_id'=>$gc_approval_criteria->id, 'selected'=>1), '', 'moduleid, weight');
     }
-    
+
     echo "<link href='./css/approval_criteria.css' rel='stylesheet'>";
 
     echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
@@ -34,17 +34,24 @@
             $gc_approval_criteria->approval_option == 1 ? $approval_option_checked = 'checked' : $approval_option_checked = '';
             $gc_approval_criteria->average_option == 1 ? $average_option_checked = 'checked' : $average_option_checked = '';
 
-            echo "<div class='mandatory_chk'>";
+            $class = '';
+            if (isset($SESSION->errors['mandatory_options'])) {
+                echo "<label class='error'>" .$SESSION->errors['mandatory_options']. "</label>";
+                $class = 'error';
+                $approval_option_checked = '';
+                $average_option_checked = '';
+                unset($SESSION->errors['mandatory_options']);
+            } 
+          
+            echo "<div class='mandatory_chk " .$class. "'>";
                 echo "<div>";
-                  echo "<input type='checkbox' name='approval_option' value=1 " .$approval_option_checked. "> Aprovação nos módulos selecionados </input>";
+                  echo "<input type='checkbox' name='approval_option' value=1 " .$approval_option_checked. "> <label> Aprovação nos módulos selecionados </label> </input>";
                 echo "</div>";
                 
                 echo "<div>";
-                  echo "<input type='checkbox' name='average_option' value=1 " .$average_option_checked. "> Média dos módulos selecionados </input>";
+                  echo "<input type='checkbox' name='average_option' value=1 " .$average_option_checked. "> <label> Média dos módulos selecionados </label> </input>";
                 echo "</div>";
-            echo "</div>";
-            
-            
+            echo "</div>";   
             
             $table = new html_table();
             $table->head = array('', 'Peso', 'Módulo');
@@ -92,12 +99,22 @@
                     break;
             }
 
-            echo "<div class='optative_radio'>";
+            $class = '';
+            if (isset($SESSION->errors['optative_options'])) {
+                echo "<label class='error'>" .$SESSION->errors['optative_options']. "</label>";
+                $class = 'error';
+                $opt1 = '';
+                $opt2 = '';
+                $opt3 = '';
+                unset($SESSION->errors['optative_options']);
+            } 
+
+            echo "<div class='optative_radio " .$class. "'>";
                 
                 echo "<div class='option_label'> Opções: </div>";
                
                 echo "<div>";
-                  echo "<input type='radio' name='optative_approval_option' value=0 ".$opt1."> Nenhuma </input>";
+                  echo "<input type='radio' name='optative_approval_option' value=0 ".$opt1."> <label> Nenhuma </label> </input>";
                 echo "</div>";
                 
                 echo "<div>";

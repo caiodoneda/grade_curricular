@@ -327,11 +327,11 @@ function gc_save_approval_criteria($contextid) {
         $errors = array();
 
         if ($record->approval_option == 0 && $record->average_option == 0) {
-            $errors['mandatory_options'] = "Ao menos umas dessas opçãoes deve ser marcada";          
+            $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";          
         }
 
         if ($record->optative_approval_option === "") {
-            $errors['optative_options'] = "Ao menos umas dessas opçãoes deve ser escolhida";          
+            $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";          
         }        
             
         if (empty($errors)) {
