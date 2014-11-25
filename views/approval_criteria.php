@@ -23,20 +23,24 @@
     echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
     echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'action', 'value'=>'approval_criteria'));
     echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'gradecurricularid', 'value'=>$grade->id));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_form'));
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_content'));
     
     if (!empty($courses_ob)) {
         echo html_writer::tag('h2', 'Cursos obrigatórios', array('class' => 'course_type_header'));
         echo html_writer::start_tag('div', array('class'=>'approval_criteria_block'));    
-        
+            $gc_approval_criteria->approval_option == 1 ? $approval_option_checked = 'checked' : $approval_option_checked = '';
+            $gc_approval_criteria->average_option == 1 ? $average_option_checked = 'checked' : $average_option_checked = '';
+
             echo "<div class='mandatory_chk'>";
                 echo "<div>";
-                  echo "<input type='checkbox' name='approval_option'> Aprovação nos módulos selecionados </input>";
+                  echo "<input type='checkbox' name='approval_option' value=1 " .$approval_option_checked. "> Aprovação nos módulos selecionados </input>";
                 echo "</div>";
                 
                 echo "<div>";
-                  echo "<input type='checkbox' name='average_option'> Média dos módulos selecionados </input>";
+                  echo "<input type='checkbox' name='average_option' value=1 " .$average_option_checked. "> Média dos módulos selecionados </input>";
                 echo "</div>";
             echo "</div>";
             
@@ -60,7 +64,7 @@
                                                              'value'=>$course->id));
                     $weight = 1;
                 }
-                $current_data[] = html_writer::empty_tag('input', array('type'=>'text', 'name'=>'peso[' . $course->id . ']', 'value'=>$weight, 'size'=>1));
+                $current_data[] = html_writer::empty_tag('input', array('type'=>'text', 'name'=>'weight[' . $course->id . ']', 'value'=>$weight, 'size'=>1));
                 $current_data[] = $course->fullname;
 
                 $table->data[] = $current_data;
@@ -75,21 +79,33 @@
         echo html_writer::tag('h2', 'Cursos optativos', array('class'=>'course_type_header'));
         
         echo html_writer::start_tag('div', array('class'=>'approval_criteria_block'));
-            
+            $opt1 = $opt2 = $opt3 = '';
+            switch ($gc_approval_criteria->optative_approval_option) {
+                case 0:
+                    $opt1 = 'checked';
+                    break;
+                case 1:
+                    $opt2 = 'checked';
+                    break;
+                case 2:
+                    $opt3 = 'checked';
+                    break;
+            }
+
             echo "<div class='optative_radio'>";
                 
                 echo "<div class='option_label'> Opções: </div>";
                
                 echo "<div>";
-                  echo "<input type='radio' name='optative_approval_option'> Nenhuma </input>";
+                  echo "<input type='radio' name='optative_approval_option' value=0 ".$opt1."> Nenhuma </input>";
                 echo "</div>";
                 
                 echo "<div>";
-                  echo "<input type='radio' name='optative_approval_option'> Aprovação nos módulos cursados </input>";
+                  echo "<input type='radio' name='optative_approval_option' value=1 ".$opt2."> Aprovação nos módulos cursados </input>";
                 echo "</div>";
                 
                 echo "<div>";
-                  echo "<input type='radio' name='optative_approval_option'> Média dos módulos cursados </input>";
+                  echo "<input type='radio' name='optative_approval_option' value=2 ".$opt3."> Média dos módulos cursados </input>";
                 echo "</div>";
             
             echo "</div>";

@@ -309,57 +309,74 @@ function gc_save_grade_options($contextid) {
     }
 }
 
-function gc_save_approval_criteria() {
-    if (confirm_sesskey()) {
-        require_capability('local/grade_curricular:configure', $context);
-        // function save_config_approval_form($mformdata, $selected_modules, $peso) {
-        //     global $DB;
-            
-        //     $record = new stdClass();
-        //     $record->gradecurricularid = $mformdata->gradeid;
-        //     isset($mformdata->approved_modules) ? $record->approved_modules = $mformdata->approved_modules : $record->approved_modules = 0;
-        //     isset($mformdata->average_options) ? $record->average_option = $mformdata->average_options : $record->average_option = 0;
-        //     isset($mformdata->average_option_grade) ? $record->average_option_grade = $mformdata->average_option_grade : $record->average_option_grade = 0;
-        //     isset($mformdata->approval_criteria) ? $record->approval_criteria = $mformdata->approval_criteria : $record->approval_criteria = 0;
-        //     isset($mformdata->approval_criteria_grade) ? $record->approval_criteria_grade = $mformdata->approval_criteria_grade : $record->approval_criteria_grade = 0;
-            
-        //     $approval_criteria_id = 0;
-            
-        //     if ($approval_criteria = $DB->get_record('cert_approval_criteria', array('gradecurricularid'=>$mformdata->gradeid))) {
-        //         $record->id = $approval_criteria->id;
-        //         $DB->update_record('cert_approval_criteria', $record);
-        //         $approval_criteria_id = $approval_criteria->id;
-        //     } else {
-        //         $approval_criteria_id = $DB->insert_record('cert_approval_criteria', $record);
-        //     }
-            
-        //     $saved_modules = $DB->get_records_menu('cert_approval_modules', array('approval_criteria_id'=>$approval_criteria_id), '', 'id, moduleid');
-            
-        //     if (!empty($selected_modules)) {
-        //   foreach ($selected_modules as $sm) {
-        //       $module = new stdClass();    
-        //       $module->moduleid = $sm;
-        //             $module->weight = $peso[$sm] > 0 ? $peso[$sm] : 0;
-        //       $module->selected = 1;
-            
-        //       if ($module_to_update = $DB->get_record('cert_approval_modules', array('approval_criteria_id'=>$approval_criteria_id, 'moduleid'=>$sm))) {
-        //           $module->id = $module_to_update->id; 
-        //           $module->approval_criteria_id = $module_to_update->approval_criteria_id;
-        //           $DB->update_record('cert_approval_modules', $module); 
-        //                 unset($saved_modules[$module->id]);
-        //       } else {
-        //                 $module->approval_criteria_id = $approval_criteria_id;
-        //           $DB->insert_record('cert_approval_modules', $module);
-        //       }
-        //   }
-        //     }
+function gc_save_approval_criteria($contextid) {
+    global $DB;
 
-        //     foreach ($saved_modules as $saved_module) {
-        //         $DB->set_field('cert_approval_modules', 'selected', 0, array('moduleid'=>$saved_module));
-        //     }
+    if (confirm_sesskey()) {
+        $context = context::instance_by_id($contextid, MUST_EXIST);
+        require_capability('local/grade_curricular:configure', $context);
+                    
+        $record = new stdClass();
+        $record->gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+        $record->approval_option = optional_param('approval_option', 0, PARAM_INT);
+        $record->average_option = optional_param('average_option', 0, PARAM_INT);
+        $record->grade_option = optional_param('grade_option', 0, PARAM_INT);
+        $record->optative_approval_option = optional_param('optative_approval_option', '', PARAM_INT);
+        $record->optative_grade_option = optional_param('optative_grade_option', 0, PARAM_INT);
+
+        $errors = array();
+
+        if ($record->approval_option == 0 && $record->average_option == 0) {
+            $errors['mandatory_options'] = "Ao menos umas dessas opçãoes deve ser marcada";          
+        }
+
+        if ($record->optative_approval_option === "") {
+            $errors['optative_options'] = "Ao menos umas dessas opçãoes deve ser escolhida";          
+        }        
             
-        // }
+        if (empty($errors)) {
+            $approval_criteria_id = 0;
+            
+            if ($approval_criteria = $DB->get_record('gc_approval_criteria', array('gradecurricularid'=>$record->gradecurricularid))) {
+                $record->id = $approval_criteria->id;
+                $DB->update_record('gc_approval_criteria', $record);
+                $approval_criteria_id = $approval_criteria->id;
+            } else {
+                $approval_criteria_id = $DB->insert_record('gc_approval_criteria', $record);
+            }
+        } else return $errors;
+
+        //saving selected modules and its weights;
+        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
+        $weights = optional_param_array('weight', array(), PARAM_INT);
+
+        $saved_modules = $DB->get_records_menu('gc_approval_modules', array('approval_criteria_id'=>$approval_criteria_id), '', 'id, moduleid');
+            
+        if (!empty($selected_modules)) {
+            foreach ($selected_modules as $sm) {
+                $module = new stdClass();    
+                $module->moduleid = $sm;
+                $module->weight = $weights[$sm] > 0 ? $weights[$sm] : 0;
+                $module->selected = 1;
+          
+                if ($module_to_update = $DB->get_record('gc_approval_modules', array('approval_criteria_id'=>$approval_criteria_id, 'moduleid'=>$sm))) {
+                    $module->id = $module_to_update->id; 
+                    $module->approval_criteria_id = $module_to_update->approval_criteria_id;
+                    $DB->update_record('gc_approval_modules', $module); 
+                    unset($saved_modules[$module->id]);
+                } else {
+                    $module->approval_criteria_id = $approval_criteria_id;
+                    $DB->insert_record('gc_approval_modules', $module);
+                }
+            }
+        }
+
+        foreach ($saved_modules as $moduleid) {
+            $DB->set_field('gc_approval_modules', 'selected', 0, array('moduleid'=>$moduleid));
+        }
     }
+
+    return $errors;
 }
 
 function gc_save($contextid, $category) {
