@@ -541,13 +541,19 @@ function get_approved_students($grade_curricular) {
     
     
     $approved_students = array();
-
-    if ($approval_criteria->approval_criteria == "0") {
-        $approved_students = $mandatory_data;
-    } else {
-        $approved_students = array_intersect_key($mandatory_data, $elective_data);
-    }
     
+    if (!empty($mandatory_modules)) {
+        if ($approval_criteria->approval_criteria == "0") {
+            $approved_students = $mandatory_data;
+        } else {
+            $approved_students = array_intersect_key($mandatory_data, $elective_data);
+        }
+    } elseif (!empty($elective_modules)) {
+        if ($approval_criteria->approval_criteria != "0") {
+            $approved_students = $elective_data;
+        }
+    }
+
     return $approved_students;
 }
 
