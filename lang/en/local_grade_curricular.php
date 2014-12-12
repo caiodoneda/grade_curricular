@@ -25,7 +25,7 @@ $string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
 $string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
 $string['studentcohort'] = 'Coorte de estudantes: ';
 $string['tutorrole'] = 'Papel de tutor: ';
-$string['notecourse'] = 'Módulo onde seráo guardadadas as anotações dos tutores: ';
+$string['notecourse'] = 'Módulo onde serão guardadas as anotações dos tutores: ';
 $string['no_notecourse'] = '-- Não serão feitas anotações pelos tutores';
 
 $string['mandatory'] = 'obrigatório';
@@ -47,6 +47,6 @@ $string['tutors'] = 'Tutores';
 
 //tabs names
 
-$string['modules'] = 'Módulos';
-$string['gradecurricular'] = 'Grade curricular';
-$string['approval_criteria'] = 'Critério de aprovação';
+$string['modules'] = 'Configuração dos módulos';
+$string['gradecurricular'] = 'Configuração da grade';
+$string['approval_criteria'] = 'Critérios de aprovação';

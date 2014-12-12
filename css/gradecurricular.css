@@ -10,30 +10,39 @@
     margin-bottom: 2em;
 }
 
-.gradecurricular_content .optative_max_min {
-    border: 1px dotted;
-    border-color: dodgerblue;
-    width: 25%;
-}
-
-.gradecurricular_content .optative_max_min div{
-    margin-left: 0.8em;
-    margin-top: 0.8em;
-    margin-bottom: 0.8em;
-}
-
-.gradecurricular_content .optative_max_min div .select{
-    float: right;
-    margin-right: 0.5em;
-}
-
-.gradecurricular_content .options {
+.gradecurricular_content .block {
     margin-top: 1em;
-    border: 1px dotted;
-    border-color: dodgerblue;
-    width: 60%;
+    border: 1px solid;
+    border-color: #D3D3D3;
+    background-color: #FEF9EC;
 }
 
+.gradecurricular_content .block div {
+    padding:0.5em;
+    display:inline-block;
+}
+
+.gradecurricular_content .block div label {
+    display:block;
+}
+
+.gradecurricular_content .block div select {
+    display:block;
+}
+
+.gradecurricular_content .block:nth-of-type(1){
+    width:25em;
+}
+
+.gradecurricular_content .block:nth-of-type(2){
+    width:40em;
+}
+
+.gradecurricular_content .block:nth-of-type(3){
+    width:52em;
+}
+
+/*
 .gradecurricular_content .options div{
     margin-left: 0.8em;
     margin-top: 0.8em;
@@ -44,7 +53,7 @@
     float: right;
     margin-right: 0.5em;
 }
-
+*/
 .submit_button {
     margin-top: 2em;
     font-size: 1em;
