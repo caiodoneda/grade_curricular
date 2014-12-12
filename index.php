@@ -101,7 +101,7 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('pluginname', 'local_grade_curricular'));
+echo html_writer::tag('h1', get_string('pluginname', 'local_grade_curricular'), array('style'=>'color:#004E95;'));
 
 $tab_items = array('modules', 'gradecurricular', 'approval_criteria');
 $tabs = array();

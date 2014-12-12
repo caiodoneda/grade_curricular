@@ -318,31 +318,53 @@ function gc_save_approval_criteria($contextid) {
                     
         $record = new stdClass();
         $record->gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+        $record->mandatory_courses = optional_param('mandatory_courses', 0, PARAM_INT);
         $record->approval_option = optional_param('approval_option', 0, PARAM_INT);
         $record->average_option = optional_param('average_option', 0, PARAM_INT);
         $record->grade_option = optional_param('grade_option', 0, PARAM_INT);
+        $record->optative_courses = optional_param('optative_courses', 0, PARAM_INT);
         $record->optative_approval_option = optional_param('optative_approval_option', '', PARAM_INT);
         $record->optative_grade_option = optional_param('optative_grade_option', 0, PARAM_INT);
 
         $errors = array();
 
-        if ($record->approval_option == 0 && $record->average_option == 0) {
-            $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";          
+        if ($record->mandatory_courses) {
+            if ($record->approval_option == 0 && $record->average_option == 0) {
+                $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";          
+            }
+
+            if ($record->grade_option < 0) $record->grade_option = 0;
+            if ($record->grade_option > 10) $record->grade_option = 10; 
         }
 
-        if ($record->optative_approval_option === "") {
-            $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";          
-        }        
+        if ($record->optative_courses) {
+            if ($record->optative_approval_option === "") {
+                $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";          
+            }
+            
+            if ($record->optative_grade_option < 0) $record->optative_grade_option = 0;
+            if ($record->optative_grade_option > 10) $record->optative_grade_option = 10; 
+        }
+
             
         if (empty($errors)) {
             $approval_criteria_id = 0;
-            
             if ($approval_criteria = $DB->get_record('gc_approval_criteria', array('gradecurricularid'=>$record->gradecurricularid))) {
                 $record->id = $approval_criteria->id;
-                $DB->update_record('gc_approval_criteria', $record);
+                
+                try {
+                    $DB->update_record('gc_approval_criteria', $record);  
+                } catch (Exception $e) {
+                    var_dump($e); exit;
+                }
+                
                 $approval_criteria_id = $approval_criteria->id;
             } else {
-                $approval_criteria_id = $DB->insert_record('gc_approval_criteria', $record);
+                 try {
+                    $approval_criteria_id = $DB->insert_record('gc_approval_criteria', $record);
+                } catch (Exception $e) {
+                    var_dump($e); exit;
+                }
             }
         } else return $errors;
 
