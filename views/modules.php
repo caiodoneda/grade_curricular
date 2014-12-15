@@ -27,7 +27,7 @@ if(isset($SESSION->errors)) {
 
 echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
 
-echo html_writer::start_tag('div');
+echo html_writer::start_tag('div', array('class'=>'modules_form'));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'action', 'value'=>'modules'));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
