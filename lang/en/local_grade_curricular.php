@@ -38,7 +38,8 @@ $string['no_cohort'] = '-- Nenhum cohort selecionado';
 
 $string['coursename'] = 'Nome do módulo';
 $string['type'] = 'Tipo';
-$string['workload'] = 'Carga Horária (h)';
+$string['tcc'] = 'Trabalho de conclusão de curso';
+$string['workload'] = 'Carga (horas, créditos, etc)';
 $string['dependency'] = 'Pré-requisito p/ inscrição';
 $string['inscribeperiodo'] = 'Périodo de inscrições';
 $string['configurations'] = 'Configurações';
