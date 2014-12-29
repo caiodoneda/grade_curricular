@@ -39,5 +39,4 @@ $(document).ready(function(){
 			$(this).prop('disabled', !$('#optative_courses_checkbox').is(':checked'));
 		});
 	});
-
 });
