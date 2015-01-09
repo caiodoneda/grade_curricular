@@ -33,11 +33,10 @@ echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
 echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'gradecurricularid', 'value'=>$grade->id));
 
-$type_options = array(0=>get_string('not_classified', 'local_grade_curricular'),
-                      1=>get_string('mandatory', 'local_grade_curricular'),
-                      2=>get_string('optional', 'local_grade_curricular'),
-                      3=>get_string('ignore', 'local_grade_curricular'),
-                      4=>get_string('tcc', 'local_grade_curricular'));
+$type_options = array(GC_IGNORE    => get_string('ignore', 'local_grade_curricular'),
+                      GC_MANDATORY => get_string('mandatory', 'local_grade_curricular'),
+                      GC_OPTIONAL  => get_string('optional', 'local_grade_curricular'),
+                      GC_TCC       => get_string('tcc', 'local_grade_curricular'));
 
 $attributes = array();
 if(! has_capability('local/grade_curricular:configure' , $context)) {
