@@ -407,8 +407,8 @@ function gc_get_students_to_certificate($grade_curricular) {
 
     $approved_students = get_approved_students($grade_curricular);
 
-    $modules_criteria = $DB->get_record('cert_modules_criteria', array('gradecurricularid'=>$grade_curricular->id));
-    $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('modules_criteria_id'=>$modules_criteria->id));
+    $sending_criteria = $DB->get_record('cert_sending_criteria', array('gradecurricularid'=>$grade_curricular->id));
+    $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('sending_criteria_id'=>$sending_criteria->id));
 
     //obrigatórios
     $mandatory_courses = array();    
