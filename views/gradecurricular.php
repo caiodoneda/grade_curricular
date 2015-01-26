@@ -47,6 +47,7 @@ for($i=0; $i <= count($courses); $i++) {
 echo html_writer::start_tag('div', array('class' => 'gradecurricular_form'));
 echo html_writer::start_tag('div', array('class' => 'gradecurricular_content'));
 
+echo html_writer::tag('label', 'Módulos optativos', array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('minoptionalcourses', 'local_grade_curricular'));
@@ -62,7 +63,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
-
+echo html_writer::tag('label', 'Sistema de inscrições', array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('edition', 'local_grade_curricular')); 
@@ -81,6 +82,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
+echo html_writer::tag('label', 'Seleção de estudantes', array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('studentcohort', 'local_grade_curricular'));
@@ -93,6 +95,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');  
 echo html_writer::end_tag('div');
 
+echo html_writer::tag('label', 'Anotações de tutores sobre estudantes', array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('notecourse', 'local_grade_curricular'));
@@ -126,3 +129,6 @@ echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'savechange
 
 echo html_writer::end_tag('form');
 echo html_writer::end_tag('DIV');
+
+echo "<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>";
+echo "<script src='js/gradecurricular.js'></script> ";

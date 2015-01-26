@@ -288,7 +288,7 @@ function gc_save_grade_options($contextid) {
         $grade->maxoptionalcourses = required_param('maxoptionalcourses', PARAM_INT);
         $grade->optionalatonetime = required_param('optionalatonetime', PARAM_INT);
         $grade->inscricoeseditionid = required_param('inscricoeseditionid', PARAM_INT);
-        $grade->studentcohortid = required_param('studentcohortid', PARAM_INT);
+        $grade->studentcohortid = optional_param('studentcohortid', 0, PARAM_INT);
         $grade->tutorroleid = required_param('tutorroleid', PARAM_INT);
         $grade->notecourseid = required_param('notecourseid', PARAM_INT);
         $grade->timemodified = time();
