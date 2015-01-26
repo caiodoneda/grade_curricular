@@ -428,8 +428,6 @@ function gc_get_students_to_certificate($grade_curricular) {
 
     $approved_students = verify_approval($approved_students, $grade_curricular, $optative_courses, $modules_type = 2);
 
-    //prepare_data só existe no certificados, então essa função retorna apenas o estudantes aprovados.
-    //return prepare_data($approved_students, $grade_curricular);
     return $approved_students;
 }
 
@@ -481,12 +479,14 @@ function get_approved_students($grade_curricular) {
     }
     
     foreach ($courses as $courseid => $course) {
-        if ($course->type == 1)
+        if ($course->type == 1) {
             if (array_key_exists($courseid, $approval_modules))
                 $mandatory_modules[$courseid] = $course;
-  
-        elseif ($course->type == 2) 
-                $optative_modules[$courseid] = $course;
+        }
+
+        if ($course->type == 2) { 
+            $optative_modules[$courseid] = $course;
+        }
     }
     
     $data_to_send = $mandatory_data = $optative_data = array();
@@ -494,6 +494,7 @@ function get_approved_students($grade_curricular) {
     //Verifica se existem cursos obrigatórios, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
     if (!empty($mandatory_modules) && ($approval_criteria->mandatory_courses)) 
         $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = 1, $approval_criteria, $approval_modules);
+    
     //Verifica se existem cursos optativos, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
     if (!empty($optative_modules && ($approval_criteria->optative_courses))) 
         $optative_data = get_approved_students_by_module_type($grade_curricular, $optative_modules, $module_type = 2, $approval_criteria);
