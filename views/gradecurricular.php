@@ -33,10 +33,10 @@ if(isset($SESSION->errors)) {
 echo html_writer::start_tag('form', array('method'=>'post', 'action'=>$baseurl));
 
 echo html_writer::start_tag('div');
-echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'action', 'value'=>'gradecurricular'));
-echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
-echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
-echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'gradecurricularid', 'value'=>$grade->id));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'action', 'value'=>'gradecurricular'));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey()));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'contextid', 'value'=>$contextid));
+    echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'gradecurricularid', 'value'=>$grade->id));
 echo html_writer::end_tag('div');
 
 $options_opt = array();
@@ -51,24 +51,24 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('minoptionalcourses', 'local_grade_curricular'));
     echo html_writer::tag('label', get_string('maxoptionalcourses', 'local_grade_curricular'));
+    echo html_writer::tag('label', get_string('optionalatonetime', 'local_grade_curricular'));
   echo html_writer::end_tag('div');
   
   echo html_writer::start_tag('div');  
     echo html_writer::select($options_opt, "minoptionalcourses", $grade->minoptionalcourses, false, $attributes);
     echo html_writer::select($options_opt, "maxoptionalcourses", $grade->maxoptionalcourses, false, $attributes);
+    $yesno_options = array('1'=>get_string('yes'), '0'=>get_string('no'));
+    echo html_writer::select($yesno_options, "optionalatonetime", $grade->optionalatonetime, false, $attributes);
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
 
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
-    $yesno_options = array('1'=>get_string('yes'), '0'=>get_string('no'));
-    echo html_writer::tag('label', get_string('optionalatonetime', 'local_grade_curricular'));
     echo html_writer::tag('label', get_string('edition', 'local_grade_curricular')); 
   echo html_writer::end_tag('div');
   
   echo html_writer::start_tag('div');
-    echo html_writer::select($yesno_options, "optionalatonetime", $grade->optionalatonetime, false, $attributes);
     
     $plugins = core_component::get_plugin_list('local');
     if(isset($plugins['inscricoes'])) {
@@ -84,15 +84,22 @@ echo html_writer::end_tag('div');
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('studentcohort', 'local_grade_curricular'));
-    echo html_writer::tag('label', get_string('notecourse', 'local_grade_curricular'));
-    echo html_writer::tag('label', get_string('tutorrole', 'local_grade_curricular'));
   echo html_writer::end_tag('div');
   
   echo html_writer::start_tag('div');    
     $cohorts_opt = gc_get_cohorts($context);
     $cohorts_opt[0] = get_string('no_cohort', 'local_grade_curricular');
     echo html_writer::select($cohorts_opt, "studentcohortid", $grade->studentcohortid, false, $attributes);
-    
+  echo html_writer::end_tag('div');  
+echo html_writer::end_tag('div');
+
+echo html_writer::start_tag('div', array('class' => 'block'));
+  echo html_writer::start_tag('div');
+    echo html_writer::tag('label', get_string('notecourse', 'local_grade_curricular'));
+    echo html_writer::tag('label', get_string('tutorrole', 'local_grade_curricular'));
+  echo html_writer::end_tag('div');
+  
+  echo html_writer::start_tag('div');    
     $courses_opt = array();
     $courses_opt[0] = get_string('no_notecourse', 'local_grade_curricular');
     foreach($courses as $c) {
