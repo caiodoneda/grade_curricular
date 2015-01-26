@@ -44,7 +44,7 @@
         <INDEX NAME="inscou_cou_ix" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="gc_approval_criteria" COMMENT="Saves the config options of approval criteria tab">
+    <TABLE NAME="grade_curricular_ap_criteria" COMMENT="Saves the config options of approval criteria tab">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="gradecurricularid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -60,7 +60,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="gc_approval_modules" COMMENT="Saves the modules that are selected in approval criteria tab">
+    <TABLE NAME="grade_curricular_ap_modules" COMMENT="Saves the modules that are selected in approval criteria tab">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="approval_criteria_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>

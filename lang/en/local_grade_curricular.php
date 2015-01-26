@@ -29,16 +29,23 @@ $string['notecourse'] = 'Módulo onde serão guardadas as anotações dos tutore
 $string['no_notecourse'] = '-- Não serão feitas anotações pelos tutores';
 
 $string['mandatory'] = 'obrigatório';
+$string['shorttype_1'] = 'obr';
+$string['type_1'] = 'obrigatório';
 $string['optional'] = 'optativo';
+$string['type_2'] = 'optativo';
+$string['shorttype_2'] = 'opt';
+$string['optional_modules'] = 'Módulos optativos';
+$string['tcc'] = 'Trabalho de conclusão de curso';
+$string['type_3'] = 'Trabalho de conclusão de curso';
+$string['shorttype_3'] = 'TCC';
 $string['ignore'] = 'não considerar';
-$string['not_classified'] = 'não classificado';
+
 $string['edition'] = 'Edição da atividade no Sistema de Inscrições: ';
 $string['no_edition'] = '-- Não relacionar a edição';
 $string['no_cohort'] = '-- Nenhum cohort selecionado';
 
 $string['coursename'] = 'Nome do módulo';
 $string['type'] = 'Tipo';
-$string['tcc'] = 'Trabalho de conclusão de curso';
 $string['workload'] = 'Carga (horas, créditos, etc)';
 $string['dependency'] = 'Pré-requisito p/ inscrição';
 $string['inscribeperiodo'] = 'Périodo de inscrições';
@@ -50,4 +57,4 @@ $string['tutors'] = 'Tutores';
 
 $string['modules'] = 'Configuração dos módulos';
 $string['gradecurricular'] = 'Configuração da grade';
-$string['approval_criteria'] = 'Critérios de aprovação';
+$string['approval_criteria'] = 'Critérios de aprovação p/certificado';

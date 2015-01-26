@@ -37,33 +37,31 @@ foreach($grades AS $gr) {
 }
 
 if(!$grade) {
-    if(empty($grades)) {
+    if(optional_param('createconfirm', false, PARAM_BOOL) &&  confirm_sesskey() && has_capability('local/grade_curricular:configure' , $context)) {
+        $grade = new stdclass();
+        $grade->contextid = $contextid;
+        $grade->minoptionalcourses = 0;
+        $grade->maxoptionalcourses = 0;
+        $grade->optionalatonetime = 0;
+        $grade->inscricoeseditionid = 0;
+        $grade->tutorroleid = 0;
+        $grade->studentcohortid = 0;
+        $grade->notecourseid = 0;
+        $grade->timemodified = time();
+        $grade->id = $DB->insert_record('grade_curricular', $grade);
+    } else if(empty($grades)) {
+        echo $OUTPUT->header();
         if(has_capability('local/grade_curricular:configure' , $context)) {
-            if (optional_param('createconfirm', false, PARAM_BOOL) &&  confirm_sesskey()) {
-                $grade = new stdclass();
-                $grade->id = 0;
-                $grade->contextid = $contextid;
-                $grade->minoptionalcourses = 0;
-                $grade->maxoptionalcourses = 0;
-                $grade->optionalatonetime = 0;
-                $grade->inscricoeseditionid = 0;
-                $grade->tutorroleid = 0;
-                $grade->studentcohortid = 0;
-                $grade->notecourseid = 0;
-            } else {
-                $yesurl = new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'createconfirm'=>1,
-                                         'sesskey'=>sesskey()));
-                $message = get_string('createconfirm', 'local_grade_curricular');
-                echo $OUTPUT->confirm($message, $yesurl, $returnurl);
-                echo $OUTPUT->footer();
-                exit;
-            }
+            $yesurl = new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'createconfirm'=>1, 'sesskey'=>sesskey()));
+            $message = get_string('createconfirm', 'local_grade_curricular');
+            echo $OUTPUT->confirm($message, $yesurl, $returnurl);
         } else {
             echo $OUTPUT->heading(get_string('no_grade_curricular', 'local_grade_curricular'));
-            echo $OUTPUT->footer();
-            exit;
         }
+        echo $OUTPUT->footer();
+        exit;
     } else {
+        echo $OUTPUT->header();
         echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
         echo get_string('another', 'local_grade_curricular');
         echo html_writer::start_tag('UL');
@@ -74,6 +72,11 @@ if(!$grade) {
             echo html_writer::tag('LI', html_writer::link($url, $cat->name));
         }
         echo html_writer::end_tag('UL');
+
+        $yesurl = new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'createconfirm'=>1, 'sesskey'=>sesskey()));
+        $message = get_string('createconfirm', 'local_grade_curricular');
+        echo $OUTPUT->confirm($message, $yesurl, $returnurl);
+
         echo $OUTPUT->box_end();
         echo $OUTPUT->footer();
         exit;
@@ -103,7 +106,10 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
 echo $OUTPUT->header();
 echo html_writer::tag('h1', get_string('pluginname', 'local_grade_curricular'), array('style'=>'color:#004E95;'));
 
-$tab_items = array('modules', 'gradecurricular', 'approval_criteria');
+$tab_items = array('modules', 'gradecurricular');
+if ($grade->inscricoeseditionid > 0) {
+    $tab_items[] = 'approval_criteria';
+}
 $tabs = array();
 
 foreach($tab_items AS $act) {

@@ -11,10 +11,10 @@
     
     $gc_approval_criteria = $gc_approval_modules = array();
 
-    $gc_approval_criteria = $DB->get_record('gc_approval_criteria', array('gradecurricularid'=>$grade->id));
+    $gc_approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$grade->id));
     
     if (!empty($gc_approval_criteria)) {
-        $gc_approval_modules = $DB->get_records_menu('gc_approval_modules', 
+        $gc_approval_modules = $DB->get_records_menu('grade_curricular_ap_modules', 
                                array('approval_criteria_id'=>$gc_approval_criteria->id, 'selected'=>1), '', 'moduleid, weight');
     }
 
