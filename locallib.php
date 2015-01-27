@@ -480,12 +480,13 @@ function get_approved_students($grade_curricular) {
     }
     
     foreach ($courses as $courseid => $course) {
-        if ($course->type == GC_MANDATORY)
-            if (array_key_exists($courseid, $approval_modules))
+        if ($course->type == GC_MANDATORY) {
+            if (array_key_exists($courseid, $approval_modules)) {
                 $mandatory_modules[$courseid] = $course;
-  
-        elseif ($course->type == GC_OPTIONAL) 
-                $optative_modules[$courseid] = $course;
+            }
+        } elseif ($course->type == GC_OPTIONAL) {
+            $optative_modules[$courseid] = $course;
+        }
     }
     
     $data_to_send = $mandatory_data = $optative_data = array();
@@ -494,9 +495,9 @@ function get_approved_students($grade_curricular) {
     if (!empty($mandatory_modules) && ($approval_criteria->mandatory_courses)) 
         $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = GC_MANDATORY, $approval_criteria, $approval_modules);
     //Verifica se existem cursos optativos, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
-    if (!empty($optative_modules && ($approval_criteria->optative_courses))) 
+    if (!empty($optative_modules) && ($approval_criteria->optative_courses))
         $optative_data = get_approved_students_by_module_type($grade_curricular, $optative_modules, $module_type = GC_OPTIONAL, $approval_criteria);
-    
+
     $approved_students = array();
     
     //Se os cursos optativos e obrigatórios vão ser considerados.
