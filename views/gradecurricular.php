@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 echo "<link href='./css/gradecurricular.css' rel='stylesheet'>";
 
@@ -47,7 +47,7 @@ for($i=0; $i <= count($courses); $i++) {
 echo html_writer::start_tag('div', array('class' => 'gradecurricular_form'));
 echo html_writer::start_tag('div', array('class' => 'gradecurricular_content'));
 
-echo html_writer::tag('label', 'Módulos optativos', array('class' => 'block_msg'));
+echo html_writer::tag('label', 'Módulos optativos ' . $OUTPUT->help_icon('optative_modules', 'local_grade_curricular'), array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('minoptionalcourses', 'local_grade_curricular'));
@@ -63,7 +63,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
-echo html_writer::tag('label', 'Sistema de inscrições', array('class' => 'block_msg'));
+echo html_writer::tag('label', 'Sistema de inscrições ' . $OUTPUT->help_icon('sistema_de_inscricoes', 'local_grade_curricular'), array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('edition', 'local_grade_curricular')); 
@@ -82,7 +82,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
-echo html_writer::tag('label', 'Seleção de estudantes', array('class' => 'block_msg'));
+echo html_writer::tag('label', 'Seleção de estudantes ' . $OUTPUT->help_icon('students_selection', 'local_grade_curricular'), array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('studentcohort', 'local_grade_curricular'));
@@ -95,7 +95,7 @@ echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::end_tag('div');  
 echo html_writer::end_tag('div');
 
-echo html_writer::tag('label', 'Anotações de tutores sobre estudantes', array('class' => 'block_msg'));
+echo html_writer::tag('label', 'Anotações de tutores sobre estudantes ' . $OUTPUT->help_icon('tutors_notes', 'local_grade_curricular'), array('class' => 'block_msg'));
 echo html_writer::start_tag('div', array('class' => 'block'));
   echo html_writer::start_tag('div');
     echo html_writer::tag('label', get_string('notecourse', 'local_grade_curricular'));

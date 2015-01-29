@@ -58,3 +58,17 @@ $string['tutors'] = 'Tutores';
 $string['modules'] = 'Configuração dos módulos';
 $string['gradecurricular'] = 'Configuração da grade';
 $string['approval_criteria'] = 'Critérios de aprovação p/certificado';
+
+//help buttons
+
+$string['optative_modules'] = 'Módulos optativos ';
+$string['optative_modules_help'] = 'Módulos optativos help';
+
+$string['sistema_de_inscricoes'] = 'Sistema de inscrições ';
+$string['sistema_de_inscricoes_help'] = 'Sistema de inscrições ';
+
+$string['students_selection'] = 'Seleção de estudantes ';
+$string['students_selection_help'] = 'Seleção de estudantes ';
+
+$string['tutors_notes'] = 'Anotações de tutores sobre estudantes';
+$string['tutors_notes_help'] = 'Anotações de tutores sobre estudantes';

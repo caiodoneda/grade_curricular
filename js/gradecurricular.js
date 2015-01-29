@@ -13,4 +13,19 @@ $(document).ready(function(){
 			$('#menustudentcohortid').prop('disabled', true);
 		}
 	})
+
+	var options = $('#menustudentcohortid').find('option');
+	options.each(function(k, v) {
+		if (v.value != 0 && v.selected) {
+			$('#menuinscricoeseditionid').prop('disabled', true);
+		}
+	});
+	
+	$('#menustudentcohortid').change(function(e){
+		if (e.target.value == 0) {
+			$('#menuinscricoeseditionid').prop('disabled', false);
+		} else {
+			$('#menuinscricoeseditionid').prop('disabled', true);
+		}
+	})
 });
