@@ -1,6 +1,7 @@
 <?php
 
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot.'/local/grade_curricular/lib.php');
 
 function gc_get_cohorts($context) {
     global $DB;
@@ -403,13 +404,16 @@ function gc_save_approval_criteria($contextid) {
 }
 
 //Certificates functions
-function gc_get_students_to_certificate($grade_curricular) {
+function gc_get_students_to_certificate($grade_curricular, $students = array()) {
     global $DB;
 
-    $approved_students = get_approved_students($grade_curricular);
+    $approved_students = get_approved_students($grade_curricular, $students);
 
-    $sending_criteria = $DB->get_record('cert_sending_criteria', array('gradecurricularid'=>$grade_curricular->id));
-    $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('sending_criteria_id'=>$sending_criteria->id));
+    $modules_to_cert = array();
+    
+    if ($sending_criteria = $DB->get_record('cert_sending_criteria', array('gradecurricularid'=>$grade_curricular->id))) {
+        $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('sending_criteria_id'=>$sending_criteria->id));
+    }
 
     //obrigatórios
     $mandatory_courses = array();    
@@ -463,7 +467,7 @@ function verify_approval($approved_students, $grade_curricular, $courses, $modul
     return $approved_students;
 }
 
-function get_approved_students($grade_curricular) {
+function get_approved_students($grade_curricular, $students) {
     global $DB;
 
     $mandatory_modules = $optative_modules = $approval_criteria = $approval_modules = array();
@@ -492,11 +496,11 @@ function get_approved_students($grade_curricular) {
     $data_to_send = $mandatory_data = $optative_data = array();
     
     //Verifica se existem cursos obrigatórios, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
-    if (!empty($mandatory_modules) && ($approval_criteria->mandatory_courses)) 
-        $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = GC_MANDATORY, $approval_criteria, $approval_modules);
+    if (!empty($mandatory_modules) && ($approval_criteria->mandatory_courses))
+        $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = GC_MANDATORY, $approval_criteria, $approval_modules, $students);
     //Verifica se existem cursos optativos, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
     if (!empty($optative_modules) && ($approval_criteria->optative_courses))
-        $optative_data = get_approved_students_by_module_type($grade_curricular, $optative_modules, $module_type = GC_OPTIONAL, $approval_criteria);
+        $optative_data = get_approved_students_by_module_type($grade_curricular, $optative_modules, $module_type = GC_OPTIONAL, $approval_criteria, $approval_modules, $students);
 
     $approved_students = array();
     
@@ -557,7 +561,7 @@ function prepare_course_grade(&$courses, $approval_modules) {
     return $grade_items;
 }
 
-function get_approved_students_by_module_type($grade_curricular, $courses, $module_type, $approval_criteria, $approval_modules = array()) {
+function get_approved_students_by_module_type($grade_curricular, $courses, $module_type, $approval_criteria, $approval_modules = array(), $students) {
     global $DB;
     
     $completions_info = get_completions_info($courses);
@@ -567,7 +571,9 @@ function get_approved_students_by_module_type($grade_curricular, $courses, $modu
     $grade_category = new grade_category();
     $grade_category->aggregation = GRADE_AGGREGATE_WEIGHTED_MEAN;
     
-    $students = gc_get_all_students($grade_curricular);
+    if (empty($students)) {
+        $students = gc_get_all_students($grade_curricular);
+    }
     
     $approved_on_selected_modules = array();
     $approved_with_score = array(); 
