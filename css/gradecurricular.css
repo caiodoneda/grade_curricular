@@ -1,0 +1,48 @@
+.gradecurricular_form {
+     margin-top: -50px;
+    background-color: #FEF9EC;
+    border: 1px solid;
+    border-color: #FEF9EC;
+}
+
+.gradecurricular_content {
+    margin-left: 1em;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.gradecurricular_content .block {
+    border: 1px solid;
+    border-color: #D3D3D3;
+    background-color: #FEF9EC;
+    width:95%;
+}
+
+.gradecurricular_content .block_msg + .block {
+    margin-top:0.5em;
+}
+
+.gradecurricular_content .block_msg {
+    font-size: 1.1em;
+    color: #004E95;
+}
+
+.gradecurricular_content .block div {
+    padding:0.5em;
+    display:inline-block;
+}
+
+.gradecurricular_content .block div label {
+    display:block;
+}
+
+.gradecurricular_content .block div select {
+    display:block;
+}
+
+.submit_button {
+    margin-top: 2em;
+    font-size: 1em;
+    width: 8em;
+    height: 2em;
+}
