@@ -94,11 +94,11 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
         break;
     case 'save_approval_criteria':
         $errors = gc_save_approval_criteria($contextid);
-        
+
         if (!empty($errors)) {
             $SESSION->errors = $errors;
         }
-        
+
         redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
         break;
 }

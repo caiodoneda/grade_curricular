@@ -74,6 +74,10 @@
             $table->head = array('', 'Peso', 'Módulo');
             $table->size = array('5%','10%','85%');
 
+            if(isset($SESSION->errors['no_selected_modules'])) {
+                $class = 'required_fields';
+            }
+
             foreach($courses_ob as $course){
                 $current_data = array();
 
@@ -161,10 +165,11 @@
 
     echo "<input class='submit_button' type='submit' name='save_approval_criteria' value='Salvar'/>";
 
-    if(isset($SESSION->errors['mandatory_options']) || isset($SESSION->errors['optative_options'])) {
-        echo '<label class=required_fields_msg> Ao menos uma das opções deve ser marcada </label>';
+    if(isset($SESSION->errors['mandatory_options']) || isset($SESSION->errors['optative_options']) || isset($SESSION->errors['no_selected_modules'])) {
+        echo '<label class=required_fields_msg> Ao menos uma das opções deve ser selecionada </label>';
         unset($SESSION->errors['mandatory_options']);
         unset($SESSION->errors['optative_options']);
+        unset($SESSION->errors['no_selected_modules']);
     }
 
     echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'savechanges', 'value'=>'save_approval_criteria'));

@@ -317,7 +317,7 @@ function gc_save_approval_criteria($contextid) {
     if (confirm_sesskey()) {
         $context = context::instance_by_id($contextid, MUST_EXIST);
         require_capability('local/grade_curricular:configure', $context);
-                    
+
         $record = new stdClass();
         $record->gradecurricularid = required_param('gradecurricularid', PARAM_INT);
         $record->mandatory_courses = optional_param('mandatory_courses', 0, PARAM_INT);
@@ -327,39 +327,42 @@ function gc_save_approval_criteria($contextid) {
         $record->optative_courses = optional_param('optative_courses', 0, PARAM_INT);
         $record->optative_approval_option = optional_param('optative_approval_option', '', PARAM_INT);
         $record->optative_grade_option = optional_param('optative_grade_option', 0, PARAM_INT);
+        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
 
         $errors = array();
 
         if ($record->mandatory_courses) {
             if ($record->approval_option == 0 && $record->average_option == 0) {
-                $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";          
+                $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";
+            } elseif(sizeof($selected_modules) == 0) {
+                $errors['no_selected_modules'] = 'Ao menos uma destas opções deve ser selecionada';
             }
 
             if ($record->grade_option < 0) $record->grade_option = 0;
-            if ($record->grade_option > 10) $record->grade_option = 10; 
+            if ($record->grade_option > 10) $record->grade_option = 10;
         }
 
         if ($record->optative_courses) {
             if ($record->optative_approval_option === "") {
-                $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";          
+                $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";
             }
-            
+
             if ($record->optative_grade_option < 0) $record->optative_grade_option = 0;
-            if ($record->optative_grade_option > 10) $record->optative_grade_option = 10; 
+            if ($record->optative_grade_option > 10) $record->optative_grade_option = 10;
         }
 
-            
+
         if (empty($errors)) {
             $approval_criteria_id = 0;
             if ($approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$record->gradecurricularid))) {
                 $record->id = $approval_criteria->id;
-                
+
                 try {
-                    $DB->update_record('grade_curricular_ap_criteria', $record);  
+                    $DB->update_record('grade_curricular_ap_criteria', $record);
                 } catch (Exception $e) {
                     var_dump($e); exit;
                 }
-                
+
                 $approval_criteria_id = $approval_criteria->id;
             } else {
                  try {
