@@ -29,13 +29,36 @@
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_content'));
 
     if (!empty($courses_ob)) {
+        if(isset($SESSION->pre_load)) {
+            $mandatory_courses = $SESSION->pre_load['mandatory_courses'];
+            $approval_option = $SESSION->pre_load['approval_option'];
+            $average_option = $SESSION->pre_load['average_option'];
+            $pre_load_grade_option = $SESSION->pre_load['grade_option'];
+            $pre_load_optative_courses = $SESSION->pre_load['optative_courses'];
+            $optative_approval_option = $SESSION->pre_load['optative_approval_option'];
+            $optative_grade_option = $SESSION->pre_load['optative_grade_option'];
+            $selected = $SESSION->pre_load['selected'];
+            unset($SESSION->pre_load);
+        } else {
+            $mandatory_courses = '';
+            $approval_option = '';
+            $average_option = '';
+            $pre_load_grade_option = 0;
+            $pre_load_optative_courses = '';
+            $optative_approval_option = '';
+            $optative_grade_option = '';
+        }
+
         echo html_writer::tag('h2', 'Cursos obrigatórios', array('class' => 'course_type_header'));
-
-        $mandatory_courses = '';
-        $mandatory_courses = (isset($gc_approval_criteria->mandatory_courses) && ($gc_approval_criteria->mandatory_courses == 1)) ? 'checked' : '';
-
+        
         echo "<div>";
-            echo "<input id='mandatory_courses_checkbox' type='checkbox' class='consider_checkbox' name='mandatory_courses' value=1 ".$mandatory_courses."> <label> Considerar módulos obrigatórios nos critérios de aprovação </label> </input>";
+        if($mandatory_courses == '') {
+            $mandatory_courses = (isset($gc_approval_criteria->mandatory_courses) && ($gc_approval_criteria->mandatory_courses == 1)) ? 'checked' : '';
+            echo "<input id='mandatory_courses_checkbox' type='checkbox' class='consider_checkbox' name='mandatory_courses' value = 1".$mandatory_courses."> <label> Considerar módulos obrigatórios nos critérios de aprovação </label> </input>";
+
+        } else {
+            echo "<input id='mandatory_courses_checkbox' type='checkbox' checked class='consider_checkbox' name='mandatory_courses' value = 1".$mandatory_courses."> <label> Considerar módulos obrigatórios nos critérios de aprovação </label> </input>";
+        }
         echo "</div>";
 
         echo html_writer::start_tag('div', array('class'=>'approval_criteria_block mandatory_block'));
@@ -56,16 +79,29 @@
 
             echo "<div class='mandatory_chk'>";
                 echo "<div>";
-                  echo "<input type='checkbox' name='approval_option' value=1 ". $approval_option_checked. "> <label class=$class> Aprovação nos módulos selecionados </label> </input>";
+                    if($approval_option == '') {
+                        echo "<input type='checkbox' name='approval_option' value=1 ". $approval_option_checked. "> <label class=$class> Aprovação nos módulos selecionados </label> </input>";
+                    } else {
+                        echo "<input type='checkbox' checked name='approval_option' value=1 ". $approval_option_checked. "> <label class=$class> Aprovação nos módulos selecionados </label> </input>";
+                    }
                 echo "</div>";
 
                 echo "<div>";
-                  echo "<input class='average_option' type='checkbox' name='average_option' value=1 ". $average_option_checked. "> <label class=$class> Média dos módulos selecionados </label> </input>";
+                    if($average_option == '') {
+                        echo "<input class='average_option' type='checkbox' name='average_option' value=1 ". $average_option_checked. "> <label class=$class> Média dos módulos selecionados </label> </input>";
+                    } else {
+                        echo "<input class='average_option' checked type='checkbox' name='average_option' value=1 ". $average_option_checked. "> <label class=$class> Média dos módulos selecionados </label> </input>";
+                    }
                 echo "</div>";
             echo "</div>";
 
             $grade_option = '0';
             $grade_option = (isset($gc_approval_criteria->grade_option)) ? $gc_approval_criteria->grade_option : 0;
+            
+            if($pre_load_grade_option != 0) {
+                $grade_option = $pre_load_grade_option;
+            }
+
             echo "<div class='grade_option'>";
                 echo "<label>Nota: </label> <input type='text' name='grade_option' value=" .$grade_option. " size=1></input>";
             echo "</div>";
@@ -80,7 +116,6 @@
 
             foreach($courses_ob as $course){
                 $current_data = array();
-
                 if (array_key_exists($course->id, $gc_approval_modules)) {
                     $current_data[] = html_writer::empty_tag('input', array('type'=>'checkbox', 'checked'=>'checked',
                                                              'name'=>'selected[' . $course->id . ']', 'value'=>$course->id));
@@ -108,7 +143,12 @@
         $optative_courses = (isset($gc_approval_criteria->optative_courses) && ($gc_approval_criteria->optative_courses == 1)) ? 'checked' : '';
 
         echo "<div>";
-            echo "<input id='optative_courses_checkbox' type='checkbox' class='consider_checkbox' name='optative_courses' value=1 ".$optative_courses."> <label> Considerar módulos optativos nos critérios de aprovação </label> </input>";
+            if($pre_load_optative_courses == '') {
+                echo "<input id='optative_courses_checkbox' type='checkbox' class='consider_checkbox' name='optative_courses' value=1 ".$optative_courses."> <label> Considerar módulos optativos nos critérios de aprovação </label> </input>";
+            } else {
+                echo "<input id='optative_courses_checkbox' checked type='checkbox' class='consider_checkbox' name='optative_courses' value=1 ".$optative_courses."> <label> Considerar módulos optativos nos critérios de aprovação </label> </input>";
+
+            }
         echo "</div>";
 
         echo html_writer::start_tag('div', array('class'=>'approval_criteria_block optative_block'));
@@ -139,16 +179,26 @@
 
             echo "<div class='optative_radio'>";
             echo "<div>";
-                  echo "<input type='radio' name='optative_approval_option' value=1 ".$opt2."> <label class = ".$class."> Aprovação nos módulos cursados </label> </input>";
+                if($optative_approval_option == 1){
+                    echo "<input type='radio' checked name='optative_approval_option' value=1 ".$opt2."> <label class = ".$class."> Aprovação nos módulos cursados </label> </input>";
+                } else {
+                    echo "<input type='radio' name='optative_approval_option' value=1 ".$opt2."> <label class = ".$class."> Aprovação nos módulos cursados </label> </input>";
+                }
                 echo "</div>";
 
                 echo "<div>";
-                  echo "<input class='optative_approval_option ' type='radio' name='optative_approval_option' value=2 ".$opt3."> <label class = ".$class."> Média dos módulos cursados </label></input>";
+                if($optative_approval_option == 2) {
+                    echo "<input class='optative_approval_option ' checked type='radio' name='optative_approval_option' value=2 ".$opt3."> <label class = ".$class."> Média dos módulos cursados </label></input>";
+                } else {
+                    echo "<input class='optative_approval_option ' type='radio' name='optative_approval_option' value=2 ".$opt3."> <label class = ".$class."> Média dos módulos cursados </label></input>";
+                }
                 echo "</div>";
             echo "</div>";
+           
+            if($optative_grade_option == 0) {
+                $optative_grade_option = (isset($gc_approval_criteria->optative_grade_option)) ? $gc_approval_criteria->optative_grade_option : 0;
+            }
 
-            $optative_grade_option = '0';
-            $optative_grade_option = (isset($gc_approval_criteria->optative_grade_option)) ? $gc_approval_criteria->optative_grade_option : 0;
             echo "<div class='optative_grade_option'>";
                 echo "<label>Nota: </label> <input type='text' name='optative_grade_option' value=".$optative_grade_option. " size=1></input>";
             echo "</div>";
