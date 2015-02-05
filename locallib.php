@@ -329,6 +329,9 @@ function gc_save_approval_criteria($contextid) {
         $record->optative_grade_option = optional_param('optative_grade_option', 0, PARAM_INT);
         $selected_modules = optional_param_array('selected', array(), PARAM_INT);
 
+        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
+        $weights = optional_param_array('weight', array(), PARAM_INT);
+        
         $errors = array();
 
         if ($record->mandatory_courses) {
@@ -373,15 +376,18 @@ function gc_save_approval_criteria($contextid) {
             }
         } else {
             $SESSION->errors = $errors;
-            $record->selected = $selected_modules;
+            $pre_load_selected_modules = $selected_modules;
+            foreach ($pre_load_selected_modules as $courseid => $value) {
+                  $pre_load_selected_modules[$courseid] = $weights[$courseid];
+            }
+            
+            $record->selected = $pre_load_selected_modules;
             $SESSION->pre_load = $record;
 
             redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
         }
 
         //saving selected modules and its weights;
-        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
-        $weights = optional_param_array('weight', array(), PARAM_INT);
 
         $saved_modules = $DB->get_records_menu('grade_curricular_ap_modules', array('approval_criteria_id'=>$approval_criteria_id), '', 'id, moduleid');
 

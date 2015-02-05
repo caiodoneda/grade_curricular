@@ -90,13 +90,13 @@
     foreach ($courses_ob as $course) {
         $current_data = array();
         if (array_key_exists($course->id, $gc_approval_modules)) {
+            $weight = $gc_approval_modules[$course->id];
             $current_data[] = html_writer::empty_tag('input', array('type'=>'checkbox', 'checked'=>'checked',
                                                      'name'=>'selected[' . $course->id . ']', 'value'=>$course->id));
-            $weight = $gc_approval_modules[$course->id];
         } else {
+            $weight = 1;
             $current_data[] = html_writer::empty_tag('input', array('type'=>'checkbox','name'=>'selected[' . $course->id . ']',
                                                      'value'=>$course->id));
-            $weight = 1;
         }
         $current_data[] = html_writer::empty_tag('input', array('type'=>'text', 'name'=>'weight[' . $course->id . ']', 'value'=>$weight, 'size'=>1));
         $current_data[] = "<label class=$class> $course->fullname </label>";
