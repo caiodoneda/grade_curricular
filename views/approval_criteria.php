@@ -9,10 +9,10 @@
             $course->type == "1" ? $courses_ob[] = $course : $courses_opt[] = $course;
     }
 
-    $gc_approval_criteria =  new stdClass();
     $gc_approval_modules = array();
 
     if (isset($SESSION->pre_load)) {
+        $gc_approval_criteria =  new stdClass();
         isset($SESSION->pre_load->mandatory_courses) ? $gc_approval_criteria->mandatory_courses = $SESSION->pre_load->mandatory_courses : $gc_approval_criteria->mandatory_courses = 0;
         isset($SESSION->pre_load->approval_option) ? $gc_approval_criteria->approval_option = $SESSION->pre_load->approval_option : $gc_approval_criteria->approval_option = 0;
         isset($SESSION->pre_load->average_option) ? $gc_approval_criteria->average_option = $SESSION->pre_load->average_option : $gc_approval_criteria->average_option = 0;
@@ -23,9 +23,20 @@
         isset($SESSION->pre_load->optative_grade_option) ? $gc_approval_criteria->optative_grade_option = $SESSION->pre_load->optative_grade_option : $gc_approval_criteria->optative_grade_option = 0;
         isset($SESSION->pre_load->selected) ? $gc_approval_modules = $SESSION->pre_load->selected : $gc_approval_modules = array();
         unset($SESSION->pre_load);
-    } else if ($gc_approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$grade->id))) {
-        $gc_approval_modules = $DB->get_records_menu('grade_curricular_ap_modules',
-                               array('approval_criteria_id'=>$gc_approval_criteria->id, 'selected'=>1), '', 'moduleid, weight');
+    } elseif ($gc_approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$grade->id))) {
+              $gc_approval_modules = $DB->get_records_menu('grade_curricular_ap_modules', array('approval_criteria_id'=>$gc_approval_criteria->id,
+                                                                                                'selected'=>1), '', 'moduleid, weight');
+    } else {
+        $gc_approval_criteria =  new stdClass();
+        $gc_approval_criteria->mandatory_courses = 0;
+        $gc_approval_criteria->approval_option = 0;
+        $gc_approval_criteria->average_option = 0;
+        $gc_approval_criteria->grade_option = 0;
+        $gc_approval_criteria->optative_courses = 0;
+        $gc_approval_criteria->optative_approval_option = 0;
+        $gc_approval_criteria->optative_average_option = 0;
+        $gc_approval_criteria->optative_grade_option = 0;
+        $gc_approval_modules = array();
     }
 
     echo "<link href='./css/approval_criteria.css' rel='stylesheet'>";
@@ -38,7 +49,7 @@
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_form'));
     echo html_writer::start_tag('div', array('class'=>'approval_criteria_content'));
 
-    
+
     echo html_writer::tag('h2', 'Cursos obrigatórios', array('class' => 'course_type_header'));
     echo "<div>";
     if ($gc_approval_criteria->mandatory_courses == 1) {
