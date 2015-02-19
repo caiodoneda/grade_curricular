@@ -63,5 +63,11 @@ function xmldb_local_grade_curricular_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, '2014121800', 'local', 'grade_curricular');
     }
 
+    if ($oldversion < 2015021900) {
+        // Forum savepoint reached.
+
+        upgrade_plugin_savepoint(true, '2015021900', 'local', 'grade_curricular');
+    }
+
     return true;
 }

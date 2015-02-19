@@ -74,10 +74,10 @@ echo html_writer::start_tag('div', array('class' => 'block'));
     $plugins = core_component::get_plugin_list('local');
     if(isset($plugins['inscricoes'])) {
         $editions_opt = array(0=>get_string('no_edition', 'local_grade_curricular'));
-        $editions_opt += gc_get_potential_editions($context, $grade->id);
-        echo html_writer::select($editions_opt, "inscricoeseditionid", $grade->inscricoeseditionid, false, $attributes);
+        $editions_opt += gc_get_potential_activities($context, $grade->id);
+        echo html_writer::select($editions_opt, "inscricoesactivityid", $grade->inscricoesactivityid, false, $attributes);
     } else {
-        echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'inscricoeseditionid', 'value'=>0));
+        echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'inscricoesactivityid', 'value'=>0));
     }
   echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');

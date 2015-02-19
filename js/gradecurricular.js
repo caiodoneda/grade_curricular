@@ -20,7 +20,7 @@ $(document).ready(function(){
 			$('#menuinscricoeseditionid').prop('disabled', true);
 		}
 	});
-	
+
 	$('#menustudentcohortid').change(function(e){
 		if (e.target.value == 0) {
 			$('#menuinscricoeseditionid').prop('disabled', false);

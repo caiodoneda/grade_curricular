@@ -3,6 +3,13 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/local/grade_curricular/lib.php');
 
+/**
+ * Returns all cohorts from a given context and its upper contexts
+ *
+ * @param stdClass $context instance
+ * @return array
+ */
+
 function gc_get_cohorts($context) {
     global $DB;
 
@@ -17,7 +24,7 @@ function gc_get_cohorts($context) {
     return $DB->get_records_sql_menu($sql, $params);
 }
 
-function gc_get_potential_editions($context, $gradeid) {
+function gc_get_potential_activities($context, $gradeid) {
     global $DB;
 
     $plugins = core_component::get_plugin_list('local');
@@ -29,16 +36,15 @@ function gc_get_potential_editions($context, $gradeid) {
     unset($ctxids[0]);
     list($in_sql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
 
-    $sql = "SELECT ie.id, ie.externaleditionname
+    $sql = "SELECT ia.id, ia.externalactivityname
               FROM {context} ctx
               JOIN {inscricoes_activities} ia ON (ia.contextid = ctx.id)
-              JOIN {inscricoes_editions} ie ON (ie.activityid = ia.id)
              WHERE ctx.id {$in_sql}
                AND NOT EXISTS (SELECT 1
                                  FROM {grade_curricular} gc
                                 WHERE gc.id != :gradeid
-                                  AND gc.inscricoeseditionid = ie.id)
-          ORDER BY ie.externaleditionname";
+                                  AND gc.inscricoesactivityid = ia.id)
+          ORDER BY ia.externalactivtyname";
     $params['gradeid'] = $gradeid;
     return $DB->get_records_sql_menu($sql, $params);
 }
@@ -288,7 +294,7 @@ function gc_save_grade_options($contextid) {
         $grade->minoptionalcourses = required_param('minoptionalcourses', PARAM_INT);
         $grade->maxoptionalcourses = required_param('maxoptionalcourses', PARAM_INT);
         $grade->optionalatonetime = required_param('optionalatonetime', PARAM_INT);
-        $grade->inscricoeseditionid = optional_param('inscricoeseditionid', 0, PARAM_INT);
+        $grade->inscricoesactivityid = optional_param('inscricoesactivityid', 0, PARAM_INT);
         $grade->studentcohortid = optional_param('studentcohortid', 0, PARAM_INT);
         $grade->tutorroleid = required_param('tutorroleid', PARAM_INT);
         $grade->notecourseid = required_param('notecourseid', PARAM_INT);
@@ -298,7 +304,7 @@ function gc_save_grade_options($contextid) {
             $errors['Configuração'][] = 'Número mínimo de módulos optativos é superior ao máximo';
         }
 
-        if($grade->inscricoeseditionid > 0 && $grade->studentcohortid > 0) {
+        if($grade->inscricoesactivityid > 0 && $grade->studentcohortid > 0) {
             $grade->studentcohortid = 0;
             $errors['Configuração'][] = 'As opções de seleção de edição da atividade e do coorte de estudantes são incompatíveis. A opção de coorte de estudantes foi desativada.';
         }

@@ -43,7 +43,7 @@ if(!$grade) {
         $grade->minoptionalcourses = 0;
         $grade->maxoptionalcourses = 0;
         $grade->optionalatonetime = 0;
-        $grade->inscricoeseditionid = 0;
+        $grade->inscricoesactivityid = 0;
         $grade->tutorroleid = 0;
         $grade->studentcohortid = 0;
         $grade->notecourseid = 0;
@@ -102,7 +102,7 @@ echo $OUTPUT->header();
 echo html_writer::tag('h1', get_string('pluginname', 'local_grade_curricular'), array('style'=>'color:#004E95;'));
 
 $tab_items = array('modules', 'gradecurricular');
-if ($grade->inscricoeseditionid > 0) {
+if ($grade->inscricoesactivityid > 0) {
     $tab_items[] = 'approval_criteria';
 }
 $tabs = array();
