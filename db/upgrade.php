@@ -64,7 +64,13 @@ function xmldb_local_grade_curricular_upgrade($oldversion) {
     }
 
     if ($oldversion < 2015021900) {
-        // Forum savepoint reached.
+        $table = new xmldb_table('grade_curricular');
+        if ($dbman->table_exists($table)) {
+            $field = new xmldb_field('inscricoeseditionid', XMLDB_TYPE_INTEGER, '10');
+            if ($dbman->field_exists($table, $field)) {
+                $dbman->rename_field($table, $field, 'inscricoesactivityid');
+            }
+        }
 
         upgrade_plugin_savepoint(true, '2015021900', 'local', 'grade_curricular');
     }
