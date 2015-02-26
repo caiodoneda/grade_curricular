@@ -44,7 +44,7 @@ function gc_get_potential_activities($context, $gradeid) {
                                  FROM {grade_curricular} gc
                                 WHERE gc.id != :gradeid
                                   AND gc.inscricoesactivityid = ia.id)
-          ORDER BY ia.externalactivtyname";
+          ORDER BY ia.externalactivityname";
     $params['gradeid'] = $gradeid;
     return $DB->get_records_sql_menu($sql, $params);
 }
