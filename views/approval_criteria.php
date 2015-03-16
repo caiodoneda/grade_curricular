@@ -158,7 +158,7 @@
                 echo "</div>";
 
                 echo "<div>";
-                    echo "<input class='optative_approval_option ' type='radio' name='optative_approval_option' value=2 ".$opt2."> <label class = ".$class."> Média dos módulos cursados </label></input>";
+                    echo "<input class='optative_approval_option' type='radio' name='optative_approval_option' value=2 ".$opt2."> <label class = ".$class."> Média dos módulos cursados </label></input>";
                 echo "</div>";
             echo "</div>";
 

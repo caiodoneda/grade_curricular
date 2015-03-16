@@ -13,7 +13,7 @@ $(document).ready(function(){
 		} else {
 			$('.optative_grade_option').hide();
 		}
-		
+
 	})
 
 	//controla a habilitação dos blocos (obrigatórios/optativos).
@@ -21,7 +21,6 @@ $(document).ready(function(){
 	$('.mandatory_block').find('input, textarea, button, select').each(function () {
 		$(this).prop('disabled', !$('#mandatory_courses_checkbox').is(':checked'));
 	});
-	
 
 	$('#mandatory_courses_checkbox').click(function() {
 		$('.mandatory_block').find('input, textarea, button, select').each(function (e) {
@@ -32,7 +31,6 @@ $(document).ready(function(){
 	$('.optative_block').find('input, textarea, button, select').each(function () {
 		$(this).prop('disabled', !$('#optative_courses_checkbox').is(':checked'));
 	});
-	
 
 	$('#optative_courses_checkbox').click(function() {
 		$('.optative_block').find('input, textarea, button, select').each(function (e) {
