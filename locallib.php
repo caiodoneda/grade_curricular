@@ -3,6 +3,13 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/local/grade_curricular/lib.php');
 
+/**
+ * Returns all cohorts from a given context and its upper contexts
+ *
+ * @param stdClass $context instance
+ * @return array
+ */
+
 function gc_get_cohorts($context) {
     global $DB;
 
@@ -17,7 +24,7 @@ function gc_get_cohorts($context) {
     return $DB->get_records_sql_menu($sql, $params);
 }
 
-function gc_get_potential_editions($context, $gradeid) {
+function gc_get_potential_activities($context, $gradeid) {
     global $DB;
 
     $plugins = core_component::get_plugin_list('local');
@@ -29,16 +36,15 @@ function gc_get_potential_editions($context, $gradeid) {
     unset($ctxids[0]);
     list($in_sql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
 
-    $sql = "SELECT ie.id, ie.externaleditionname
+    $sql = "SELECT ia.id, ia.externalactivityname
               FROM {context} ctx
               JOIN {inscricoes_activities} ia ON (ia.contextid = ctx.id)
-              JOIN {inscricoes_editions} ie ON (ie.activityid = ia.id)
              WHERE ctx.id {$in_sql}
                AND NOT EXISTS (SELECT 1
                                  FROM {grade_curricular} gc
                                 WHERE gc.id != :gradeid
-                                  AND gc.inscricoeseditionid = ie.id)
-          ORDER BY ie.externaleditionname";
+                                  AND gc.inscricoesactivityid = ia.id)
+          ORDER BY ia.externalactivityname";
     $params['gradeid'] = $gradeid;
     return $DB->get_records_sql_menu($sql, $params);
 }
@@ -288,7 +294,7 @@ function gc_save_grade_options($contextid) {
         $grade->minoptionalcourses = required_param('minoptionalcourses', PARAM_INT);
         $grade->maxoptionalcourses = required_param('maxoptionalcourses', PARAM_INT);
         $grade->optionalatonetime = required_param('optionalatonetime', PARAM_INT);
-        $grade->inscricoeseditionid = optional_param('inscricoeseditionid', 0, PARAM_INT);
+        $grade->inscricoesactivityid = optional_param('inscricoesactivityid', 0, PARAM_INT);
         $grade->studentcohortid = optional_param('studentcohortid', 0, PARAM_INT);
         $grade->tutorroleid = required_param('tutorroleid', PARAM_INT);
         $grade->notecourseid = required_param('notecourseid', PARAM_INT);
@@ -298,7 +304,7 @@ function gc_save_grade_options($contextid) {
             $errors['Configuração'][] = 'Número mínimo de módulos optativos é superior ao máximo';
         }
 
-        if($grade->inscricoeseditionid > 0 && $grade->studentcohortid > 0) {
+        if($grade->inscricoesactivityid > 0 && $grade->studentcohortid > 0) {
             $grade->studentcohortid = 0;
             $errors['Configuração'][] = 'As opções de seleção de edição da atividade e do coorte de estudantes são incompatíveis. A opção de coorte de estudantes foi desativada.';
         }
@@ -312,12 +318,12 @@ function gc_save_grade_options($contextid) {
 }
 
 function gc_save_approval_criteria($contextid) {
-    global $DB;
+    global $DB, $SESSION;
 
     if (confirm_sesskey()) {
         $context = context::instance_by_id($contextid, MUST_EXIST);
         require_capability('local/grade_curricular:configure', $context);
-                    
+
         $record = new stdClass();
         $record->gradecurricularid = required_param('gradecurricularid', PARAM_INT);
         $record->mandatory_courses = optional_param('mandatory_courses', 0, PARAM_INT);
@@ -327,66 +333,81 @@ function gc_save_approval_criteria($contextid) {
         $record->optative_courses = optional_param('optative_courses', 0, PARAM_INT);
         $record->optative_approval_option = optional_param('optative_approval_option', '', PARAM_INT);
         $record->optative_grade_option = optional_param('optative_grade_option', 0, PARAM_INT);
+        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
 
+        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
+        $weights = optional_param_array('weight', array(), PARAM_INT);
+        
         $errors = array();
 
         if ($record->mandatory_courses) {
             if ($record->approval_option == 0 && $record->average_option == 0) {
-                $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";          
+                $errors['mandatory_options'] = "Ao menos uma destas opções deve ser marcada";
+            } elseif(sizeof($selected_modules) == 0) {
+                $errors['no_selected_modules'] = 'Ao menos uma destas opções deve ser selecionada';
             }
 
             if ($record->grade_option < 0) $record->grade_option = 0;
-            if ($record->grade_option > 10) $record->grade_option = 10; 
+            if ($record->grade_option > 10) $record->grade_option = 10;
         }
 
         if ($record->optative_courses) {
             if ($record->optative_approval_option === "") {
-                $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";          
+                $errors['optative_options'] = "Ao menos uma destas opções deve ser marcada";
             }
-            
+
             if ($record->optative_grade_option < 0) $record->optative_grade_option = 0;
-            if ($record->optative_grade_option > 10) $record->optative_grade_option = 10; 
+            if ($record->optative_grade_option > 10) $record->optative_grade_option = 10;
         }
 
-            
+
         if (empty($errors)) {
             $approval_criteria_id = 0;
             if ($approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$record->gradecurricularid))) {
                 $record->id = $approval_criteria->id;
-                
+
                 try {
-                    $DB->update_record('grade_curricular_ap_criteria', $record);  
+                    $DB->update_record('grade_curricular_ap_criteria', $record);
                 } catch (Exception $e) {
                     var_dump($e); exit;
                 }
-                
+
                 $approval_criteria_id = $approval_criteria->id;
             } else {
-                 try {
-                    $approval_criteria_id = $DB->insert_record('grade_curricular_ap_criteria', $record);
+                try {
+                   $approval_criteria_id = $DB->insert_record('grade_curricular_ap_criteria', $record);
                 } catch (Exception $e) {
                     var_dump($e); exit;
                 }
             }
-        } else return $errors;
+        } else {
+            $SESSION->errors = $errors;
+            $pre_load_selected_modules = $selected_modules;
+            foreach ($pre_load_selected_modules as $courseid => $value) {
+                  $pre_load_selected_modules[$courseid] = $weights[$courseid];
+            }
+            
+            $record->selected = $pre_load_selected_modules;
+            $SESSION->pre_load = $record;
+
+            redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
+        }
 
         //saving selected modules and its weights;
-        $selected_modules = optional_param_array('selected', array(), PARAM_INT);
-        $weights = optional_param_array('weight', array(), PARAM_INT);
 
         $saved_modules = $DB->get_records_menu('grade_curricular_ap_modules', array('approval_criteria_id'=>$approval_criteria_id), '', 'id, moduleid');
-            
+
         if (!empty($selected_modules)) {
             foreach ($selected_modules as $sm) {
-                $module = new stdClass();    
+                $module = new stdClass();
                 $module->moduleid = $sm;
                 $module->weight = $weights[$sm] > 0 ? $weights[$sm] : 0;
                 $module->selected = 1;
-          
+
                 if ($module_to_update = $DB->get_record('grade_curricular_ap_modules', array('approval_criteria_id'=>$approval_criteria_id, 'moduleid'=>$sm))) {
-                    $module->id = $module_to_update->id; 
+                    $module->id = $module_to_update->id;
                     $module->approval_criteria_id = $module_to_update->approval_criteria_id;
-                    $DB->update_record('grade_curricular_ap_modules', $module); 
+                    $DB->update_record('grade_curricular_ap_modules', $module);
                     unset($saved_modules[$module->id]);
                 } else {
                     $module->approval_criteria_id = $approval_criteria_id;

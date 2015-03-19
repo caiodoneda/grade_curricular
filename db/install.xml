@@ -11,7 +11,7 @@
         <FIELD NAME="minoptionalcourses" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="maxoptionalcourses" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="optionalatonetime" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="inscricoeseditionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="inscricoesactivityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="tutorroleid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="studentcohortid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="notecourseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>

@@ -43,7 +43,7 @@ if(!$grade) {
         $grade->minoptionalcourses = 0;
         $grade->maxoptionalcourses = 0;
         $grade->optionalatonetime = 0;
-        $grade->inscricoeseditionid = 0;
+        $grade->inscricoesactivityid = 0;
         $grade->tutorroleid = 0;
         $grade->studentcohortid = 0;
         $grade->notecourseid = 0;
@@ -93,12 +93,7 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
         redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
         break;
     case 'save_approval_criteria':
-        $errors = gc_save_approval_criteria($contextid);
-        
-        if (!empty($errors)) {
-            $SESSION->errors = $errors;
-        }
-        
+        gc_save_approval_criteria($contextid);
         redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
         break;
 }
@@ -107,7 +102,7 @@ echo $OUTPUT->header();
 echo html_writer::tag('h1', get_string('pluginname', 'local_grade_curricular'), array('style'=>'color:#004E95;'));
 
 $tab_items = array('modules', 'gradecurricular');
-if ($grade->inscricoeseditionid > 0) {
+if ($grade->inscricoesactivityid > 0) {
     $tab_items[] = 'approval_criteria';
 }
 $tabs = array();

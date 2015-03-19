@@ -65,20 +65,19 @@ class local_grade_curricular {
         global $DB, $CFG;
 
         $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
-        if($grade->inscricoeseditionid > 0) {
-            $edition = $DB->get_record('inscricoes_editions', array('id' => $grade->inscricoeseditionid), '*', MUST_EXIST);
+        if($grade->inscricoesactivityid > 0) {
+            $roleids = explode(',', $CFG->gradebookroles);
+            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
-                     JOIN {inscricoes_editions} ie
-                     JOIN {cohort} ch ON (ch.idnumber = :cohort_idnumber)
-                     JOIN {cohort_members} chm ON (chm.cohortid = ch.id)
+                     JOIN {inscricoes_activities} ia (ia.id = gcc.inscricoesactivityid)
+                     JOIN {inscricoes_cohorts} ic (ic.activityid = ia.id AND ic.roleid {$in_sql})
+                     JOIN {cohort_members} chm ON (chm.cohortid = ic.cohortid)
                      JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
-            $where = "WHERE gc.id = :gradeid
-                        AND ie.id = :editionid";
-            $params = array('editionid' => $edition->id,
-                            'gradeid'   => $gradeid,
-                            'ignore'    => GC_IGNORE,
-                            'cohort_idnumber' => local_inscricoes::cohort_idnumber_sql('ie', $edition));
+            $where = "WHERE gc.id = :gradeid";
+            $params['gradeid'] = $gradeid;
+            $params['ignore'] = GC_IGNORE;
         } else if($grade->studentcohortid > 0) {
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
@@ -159,7 +158,7 @@ class local_grade_curricular {
     }
 
     /**
-     * Returns an array of grade curriculares associated to the student and includes courseid
+     * Returns an array of grade curriculares associated to the student and courseid
      *
      * @param int $userid
      * @param int $courseid
