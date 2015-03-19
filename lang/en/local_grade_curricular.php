@@ -40,8 +40,8 @@ $string['type_3'] = 'Trabalho de conclusão de curso';
 $string['shorttype_3'] = 'TCC';
 $string['ignore'] = 'não considerar';
 
-$string['edition'] = 'Edição da atividade no Sistema de Inscrições: ';
-$string['no_edition'] = '-- Não relacionar a edição';
+$string['activity'] = 'Atividade no Sistema de Inscrições: ';
+$string['no_activity'] = '-- Não relacionar a atividade';
 $string['no_cohort'] = '-- Nenhum cohort selecionado';
 
 $string['coursename'] = 'Nome do módulo';
