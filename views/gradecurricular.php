@@ -130,5 +130,5 @@ echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'savechange
 echo html_writer::end_tag('form');
 echo html_writer::end_tag('DIV');
 
-echo "<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>";
+echo "<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>";
 echo "<script src='js/gradecurricular.js'></script> ";
