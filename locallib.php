@@ -100,8 +100,8 @@ function gc_get_grade_courses($gradeid, $only_active=false) {
               FROM {grade_curricular_courses} gcc
               JOIN {course} c ON (c.id = gcc.courseid)
              WHERE gcc.gradecurricularid = :gradecurricularid
-             ORDER BY sortorder
-               {$where}";
+               {$where}
+          ORDER BY c.sortorder";
     return $DB->get_records_sql($sql, $params);
 }
 
