@@ -1,7 +1,7 @@
 <?php
     defined('MOODLE_INTERNAL') || die();
 
-    $courses = gc_get_grade_courses($grade->id, true);
+    $courses = local_grade_curricular::get_grade_courses($grade->id, true);
     $courses_ob = array();
     $courses_opt = array();
 

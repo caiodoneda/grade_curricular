@@ -2,7 +2,7 @@
 
 echo "<link href='./css/gradecurricular.css' rel='stylesheet'>";
 
-$courses = gc_get_potential_courses($category->path, $grade->id);
+$courses = local_grade_curricular::get_potential_courses($category->path, $grade->id);
 
 $attributes = array();
 if (! has_capability('local/grade_curricular:configure' , $context)) {
@@ -74,7 +74,7 @@ echo html_writer::start_tag('div');
 $plugins = core_component::get_plugin_list('local');
 if (isset($plugins['inscricoes'])) {
     $activities_opt = array(0=>get_string('no_activity', 'local_grade_curricular'));
-    $activities_opt += gc_get_potential_activities($context, $grade->id);
+    $activities_opt += local_grade_curricular::get_potential_activities($context, $grade->id);
     echo html_writer::select($activities_opt, "inscricoesactivityid", $grade->inscricoesactivityid, false, $attributes);
 } else {
     echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'inscricoesactivityid', 'value'=>0));
@@ -89,7 +89,7 @@ echo html_writer::tag('label', get_string('studentcohort', 'local_grade_curricul
 echo html_writer::end_tag('div');
 
 echo html_writer::start_tag('div');
-$cohorts_opt = gc_get_cohorts($context);
+$cohorts_opt = local_grade_curricular::get_cohorts($context);
 $cohorts_opt[0] = get_string('no_cohort', 'local_grade_curricular');
 echo html_writer::select($cohorts_opt, "studentcohortid", $grade->studentcohortid, false, $attributes);
 echo html_writer::end_tag('div');

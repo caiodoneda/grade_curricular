@@ -2,7 +2,7 @@
 
 echo "<link href='./css/modules.css' rel='stylesheet'>";
 
-$courses = gc_get_potential_courses($category->path, $grade->id);
+$courses = local_grade_curricular::get_potential_courses($category->path, $grade->id);
 
 echo html_writer::start_tag('DIV', array('class'=>'local_grade_curricular'));
 

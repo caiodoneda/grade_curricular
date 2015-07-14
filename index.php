@@ -2,7 +2,7 @@
 
 require('../../config.php');
 
-require_once($CFG->dirroot.'/local/grade_curricular/locallib.php');
+require_once($CFG->dirroot.'/local/grade_curricular/classes/grade_curricular.php');
 require_once($CFG->libdir.'/adminlib.php');
 
 require_login();
@@ -27,7 +27,7 @@ $PAGE->set_heading($COURSE->fullname);
 
 $category = $DB->get_record('course_categories', array('id'=>$context->instanceid), '*', MUST_EXIST);
 
-$grades = gc_get_grades_curriculares($category);
+$grades = local_grade_curricular::get_grades_curriculares($category);
 $grade = false;
 foreach($grades AS $gr) {
     if($gr->contextid == $contextid) {
