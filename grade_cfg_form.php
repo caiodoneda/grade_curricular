@@ -50,12 +50,17 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
                            $options_opt);
         $mform->addElement('select', 'optionalatonetime', get_string('optionalatonetime', 'local_grade_curricular'),
                            $yesno_options);
-        $mform->closeHeaderBefore('sistema_de_inscricoes');
+        $mform->addElement('advcheckbox', 'approved_in_all_apt', 
+                           get_string('approved_in_all_apt', 'local_grade_curricular'), 
+                           '', array('group' => 1), array(0, 1));
+
+        $mform->closeHeaderBefore('students_selection');
 
         
         $plugins = core_component::get_plugin_list('local');
         
-        $mform->addElement('header', 'sistema_de_inscricoes', get_string('sistema_de_inscricoes', 'local_grade_curricular'));
+        $mform->addElement('header', 'students_selection', get_string('students_selection', 'local_grade_curricular'));
+        //$mform->addElement('header', 'sistema_de_inscricoes', get_string('sistema_de_inscricoes', 'local_grade_curricular'));
         if (isset($plugins['inscricoes'])) {
             $activities_opt = array(0=>get_string('no_activity', 'local_grade_curricular'));
             $activities_opt += local_grade_curricular::get_potential_activities($context, $grade->id);
@@ -68,9 +73,11 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         $mform->closeHeaderBefore('students_selection');
 
 
+        $mform->addElement('html', html_writer::tag('label', 'ou', array('style'=>'margin-top:15px; margin-left:200px')));
+
         $cohorts_opt = local_grade_curricular::get_cohorts($context);
         $cohorts_opt[0] = get_string('no_cohort', 'local_grade_curricular');
-        $mform->addElement('header', 'students_selection', get_string('students_selection', 'local_grade_curricular'));
+        //$mform->addElement('header', 'students_selection', get_string('students_selection', 'local_grade_curricular'));
         $mform->addElement('select', 'studentcohortid', get_string('studentcohort', 'local_grade_curricular'), $cohorts_opt);
         $mform->disabledIf('inscricoesactivityid', 'studentcohortid', 'neq', 0);
         $mform->closeHeaderBefore('tutors_notes');

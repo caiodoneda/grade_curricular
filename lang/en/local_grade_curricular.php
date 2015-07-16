@@ -35,6 +35,7 @@ $string['optional'] = 'optativo';
 $string['type_2'] = 'optativo';
 $string['shorttype_2'] = 'opt';
 $string['optional_modules'] = 'Módulos optativos';
+$string['approved_in_all_apt'] = 'Aprovação em todos os módulos optativos que o estudante se inscreveu.';
 $string['tcc'] = 'Trabalho de conclusão de curso';
 $string['type_3'] = 'Trabalho de conclusão de curso';
 $string['shorttype_3'] = 'TCC';

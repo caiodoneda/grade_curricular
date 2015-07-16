@@ -101,9 +101,6 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
 */
 
 $tab_items = array('modules', 'gradecurricular');
-if ($grade->inscricoesactivityid > 0) {
-    $tab_items[] = 'approval_criteria';
-}
 $tabs = array();
 
 foreach($tab_items AS $act) {
