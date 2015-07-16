@@ -83,6 +83,7 @@ if(!$grade) {
     }
 }
 
+/*
 switch (optional_param('savechanges', '', PARAM_TEXT)) {
     case 'save_modules':
         gc_save_modules($contextid, $category);
@@ -97,9 +98,7 @@ switch (optional_param('savechanges', '', PARAM_TEXT)) {
         redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
         break;
 }
-
-echo $OUTPUT->header();
-echo html_writer::tag('h1', get_string('pluginname', 'local_grade_curricular'), array('style'=>'color:#004E95;'));
+*/
 
 $tab_items = array('modules', 'gradecurricular');
 if ($grade->inscricoesactivityid > 0) {
@@ -116,18 +115,41 @@ foreach($tab_items AS $act) {
 $action = optional_param('action', '', PARAM_TEXT);
 $action = isset($tabs[$action]) ? $action : 'modules';
 
-print_tabs(array($tabs), $action);
-
 switch ($action) {
     case 'modules':
-        require_once('views/modules.php');
+        require_once('./modules_form.php');
+        
+        $toform = array('category'=>$category, 'grade'=>$grade, 'context'=>$context);
+
+        $mform = new local_grade_curricular_modules_form(null, $toform);
+                
+        if ($formdata = $mform->get_data()) {
+            local_grade_curricular::save_modules($contextid, $category);
+            redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'modules')));
+        }
+
         break;
     case 'gradecurricular':
-        require_once('views/gradecurricular.php');
+        require_once('./grade_cfg_form.php');
+        
+        $toform = array('category'=>$category, 'grade'=>$grade, 'context'=>$context);
+
+        $mform = new local_grade_curricular_grade_cfg_form(null, $toform);
+                
+        if ($formdata = $mform->get_data()) {
+            //local_grade_curricular::save_modules($contextid, $category);
+            redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
+        }
+
         break;
     case 'approval_criteria':
         require_once('views/approval_criteria.php');
         break;
 }
+
+echo $OUTPUT->header();
+
+print_tabs(array($tabs), $action);
+$mform->display();
 
 echo $OUTPUT->footer();
