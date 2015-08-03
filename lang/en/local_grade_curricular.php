@@ -19,22 +19,25 @@ $string['dependecy_not_opt_dem'] = 'Pré-requisito deve ser um módulo obrigató
 $string['end_before_start'] = 'Data de final de inscrições é anterior à de início';
 
 $string['configure_courses'] = 'Configuração dos módulos';
+$string['inscricoesactivityid'] = 'Sistema de inscrições ';
 $string['studentrole'] = 'Papel de estudantes: ';
 $string['minoptionalcourses'] = 'Número mínimo de módulos optativos: ';
 $string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
 $string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
+$string['tutors_notes'] = 'Anotações de tutores sobre estudantes';
 $string['studentcohort'] = 'Coorte de estudantes: ';
 $string['tutorrole'] = 'Papel de tutor: ';
 $string['notecourse'] = 'Módulo onde serão guardadas as anotações dos tutores: ';
 $string['no_notecourse'] = '-- Não serão feitas anotações pelos tutores';
+$string['students_selection'] = 'Seleção de estudantes ';
 
 $string['mandatory'] = 'obrigatório';
+$string['optative_modules'] = 'Módulos optativos ';
 $string['shorttype_1'] = 'obr';
 $string['type_1'] = 'obrigatório';
 $string['optional'] = 'optativo';
 $string['type_2'] = 'optativo';
 $string['shorttype_2'] = 'opt';
-$string['optional_modules'] = 'Módulos optativos';
 $string['approved_in_all_apt'] = 'Aprovação em todos os módulos optativos que o estudante se inscreveu.';
 $string['tcc'] = 'Trabalho de conclusão de curso';
 $string['type_3'] = 'Trabalho de conclusão de curso';
@@ -61,15 +64,15 @@ $string['gradecurricular'] = 'Configuração da grade';
 $string['approval_criteria'] = 'Critérios de aprovação p/certificado';
 
 //help buttons
-
-$string['optative_modules'] = 'Módulos optativos ';
-$string['optative_modules_help'] = 'Módulos optativos help';
-
-$string['sistema_de_inscricoes'] = 'Sistema de inscrições ';
-$string['sistema_de_inscricoes_help'] = 'Sistema de inscrições ';
-
-$string['students_selection'] = 'Seleção de estudantes ';
+$string['minoptionalcourses_help'] = 'Help';
+$string['maxoptionalcourses_help'] = 'Help';
+$string['optionalatonetime_help'] = 'Help';
+$string['studentcohort_help'] = 'Help';
+$string['tutorrole_help'] = 'Help';
+$string['inscricoesactivityid_help'] = 'Sistema de inscrições ';
 $string['students_selection_help'] = 'Seleção de estudantes ';
+$string['notecourse_help'] = 'Anotações de tutores sobre estudantes';
 
-$string['tutors_notes'] = 'Anotações de tutores sobre estudantes';
-$string['tutors_notes_help'] = 'Anotações de tutores sobre estudantes';
+//errors
+$string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao número máximo de módulos optativos';
+$string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de módulos optativos ';

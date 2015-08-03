@@ -648,4 +648,41 @@ class local_grade_curricular {
             }
         }
     }
+
+    public static function save_cfg_grade($contextid, $formdata) {
+        global $DB, $SESSION;
+
+        if (confirm_sesskey()) {
+            $context = context::instance_by_id($contextid, MUST_EXIST);
+            require_capability('local/grade_curricular:configure', $context);
+
+            $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+
+            $record = new stdclass();
+            $record->contextid = $contextid;
+            $record->minoptionalcourses = $formdata->minoptionalcourses;
+            $record->maxoptionalcourses = $formdata->maxoptionalcourses;
+            $record->inscricoesactivityid = $formdata->inscricoesactivityid;
+            $record->optionalatonetime = $formdata->optionalatonetime;
+            $record->tutorroleid = $formdata->tutorroleid;
+            $record->studentcohortid = $formdata->studentcohortid;
+            $record->notecourseid = $formdata->notecourseid;
+            $record->timemodified = time();
+
+            if ($DB->record_exists('grade_curricular', array('id' => $gradecurricularid))) {
+              $record->id = $gradecurricularid;
+              try {
+                $DB->update_record('grade_curricular', $record);
+              } catch (Exception $e) {
+                print_error($e);
+              }
+            } else {
+              try {
+                $DB->insert_record('grade_curricular', $record);
+              } catch (Exception  $e) {
+                print_error($e);
+              }
+            }
+        }
+    }
 }

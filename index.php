@@ -83,23 +83,6 @@ if(!$grade) {
     }
 }
 
-/*
-switch (optional_param('savechanges', '', PARAM_TEXT)) {
-    case 'save_modules':
-        gc_save_modules($contextid, $category);
-        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'modules')));
-        break;
-    case 'save_grade_options':
-        gc_save_grade_options($contextid);
-        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
-        break;
-    case 'save_approval_criteria':
-        gc_save_approval_criteria($contextid);
-        redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'approval_criteria')));
-        break;
-}
-*/
-
 $tab_items = array('modules', 'gradecurricular');
 $tabs = array();
 
@@ -134,13 +117,10 @@ switch ($action) {
         $mform = new local_grade_curricular_grade_cfg_form(null, $toform);
                 
         if ($formdata = $mform->get_data()) {
-            //local_grade_curricular::save_modules($contextid, $category);
+            local_grade_curricular::save_cfg_grade($contextid, $formdata);
             redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
         }
 
-        break;
-    case 'approval_criteria':
-        require_once('views/approval_criteria.php');
         break;
 }
 
