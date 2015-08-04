@@ -95,17 +95,18 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         $mform->addElement('header', 'students_selection', get_string('students_selection', 'local_grade_curricular'));
         
         if (isset($plugins['inscricoes'])) {
-            $activities_opt = array(0=>get_string('no_activity', 'local_grade_curricular'));
+            $activities_opt[0] = get_string('no_activity', 'local_grade_curricular');
             $activities_opt += local_grade_curricular::get_potential_activities($context, $grade->id);
             $mform->addElement('select', 'inscricoesactivityid', get_string('activity', 'local_grade_curricular'), 
                                $activities_opt);
             $mform->setType('inscricoesactivityid', PARAM_INT);
+            $mform->disabledIf('studentcohortid', 'inscricoesactivityid', 'neq', 0);
             $mform->setDefault('inscricoesactivityid', $pre_data->inscricoesactivityid);
             $mform->addHelpButton('inscricoesactivityid', 'inscricoesactivityid', 'local_grade_curricular');
-            $mform->disabledIf('studentcohortid', 'inscricoesactivityid', 'neq', 0);
         } else {
             $mform->addElement('hidden', 'inscricoesactivityid', 0);
         }
+
         $mform->closeHeaderBefore('students_selection');
 
         $mform->addElement('html', html_writer::tag('label', 'ou', array('style'=>'margin-top:15px; margin-left:200px')));
@@ -117,7 +118,6 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         $mform->setType('studentcohortid', PARAM_INT);
         $mform->setDefault('studentcohortid', $pre_data->studentcohortid);
         $mform->addHelpButton('studentcohortid', 'studentcohort', 'local_grade_curricular');
-
         $mform->disabledIf('inscricoesactivityid', 'studentcohortid', 'neq', 0);
         $mform->closeHeaderBefore('tutors_notes');
 
@@ -158,6 +158,32 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         if ($data['maxoptionalcourses'] < $data['minoptionalcourses']){
             $errors['maxoptionalcourses'] = get_string('maxoptionalcourseserror', 'local_grade_curricular');
             $errors['minoptionalcourses'] = get_string('minoptionalcourseserror', 'local_grade_curricular');
+        }
+
+        $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+        $courses = local_grade_curricular::get_courses($gradecurricularid);
+
+        $count_opt = 0;
+        foreach ($courses as $key => $course) {
+            if ($course->type == 2) {
+                $count_opt++;
+            }
+        }
+
+        if ($data['maxoptionalcourses'] > $count_opt) {
+            if (isset($errors['maxoptionalcourses'])) {
+                $errors['maxoptionalcourses'] .= get_string('morethanerror', 'local_grade_curricular');
+            } else {
+                $errors['maxoptionalcourses'] = get_string('morethanerror', 'local_grade_curricular');
+            }
+        }
+
+        if ($data['minoptionalcourses'] > $count_opt) {
+            if (isset($data['minoptionalcourses'])) {
+                $errors['minoptionalcourses'] .= get_string('morethanerror', 'local_grade_curricular');
+            } else {
+                $errors['minoptionalcourses'] = get_string('morethanerror', 'local_grade_curricular');
+            }
         }
 
         return $errors;

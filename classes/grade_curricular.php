@@ -657,7 +657,18 @@ class local_grade_curricular {
             require_capability('local/grade_curricular:configure', $context);
 
             $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+            
+            //check if the inscricoesactivityid and studentcohortid are set, otherwise, save 0.
+            $inscricoesactivityid = optional_param('inscricoesactivityid', -1 ,PARAM_INT);
+            $studentcohortid = optional_param('studentcohortid', -1 ,PARAM_INT);
+            if ($inscricoesactivityid == -1) {
+                $formdata->inscricoesactivityid = 0;
+            }
 
+            if ($studentcohortid == -1) {
+                $formdata->studentcohortid = 0;
+            }
+        
             $record = new stdclass();
             $record->contextid = $contextid;
             $record->minoptionalcourses = $formdata->minoptionalcourses;

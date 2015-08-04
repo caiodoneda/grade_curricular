@@ -74,5 +74,7 @@ $string['students_selection_help'] = 'Seleção de estudantes ';
 $string['notecourse_help'] = 'Anotações de tutores sobre estudantes';
 
 //errors
-$string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao número máximo de módulos optativos';
-$string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de módulos optativos ';
+$string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao número máximo de módulos optativos. ';
+$string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de módulos optativos. ';
+
+$string['morethanerror'] = 'Esse valor precisa ser menor ou igual ao número de cursos optativos existentes.';
