@@ -179,7 +179,7 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         }
 
         if ($data['minoptionalcourses'] > $count_opt) {
-            if (isset($data['minoptionalcourses'])) {
+            if (isset($errors['minoptionalcourses'])) {
                 $errors['minoptionalcourses'] .= get_string('morethanerror', 'local_grade_curricular');
             } else {
                 $errors['minoptionalcourses'] = get_string('morethanerror', 'local_grade_curricular');
