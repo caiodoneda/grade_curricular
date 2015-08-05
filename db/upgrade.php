@@ -46,6 +46,35 @@ function xmldb_local_grade_curricular_upgrade($oldversion) {
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
+    if ($oldversion < 2015022500) {
+        $table = new xmldb_table('grade_curricular_ap_criteria');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);      
+        }
+
+        $table = new xmldb_table('grade_curricular_ap_modules');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);      
+        }
+
+        $table = new xmldb_table('grade_curricular_backup');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);      
+        }
+
+        $table = new xmldb_table('grade_curricular_copia');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);      
+        }
+
+        $table = new xmldb_table('grade_curricular_courses_backup');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);      
+        }
+
+        upgrade_plugin_savepoint(true, '2015022500', 'local', 'grade_curricular');
+    }
+
     if ($oldversion < 2014121800) {
         // Forum savepoint reached.
         $DB->execute("UPDATE {grade_curricular_courses} SET type = 0 WHERE type=3");
