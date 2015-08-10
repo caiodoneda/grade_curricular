@@ -307,273 +307,68 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSE, 'roleid'=>$roleid));
     }
 
-    public static function get_students_to_certificate($grade_curricular, $students = array()) {
+    public static function get_approved_students($grade_curricular, $students = array()) {
         global $DB;
 
-        $approved_students = get_approved_students($grade_curricular, $students);
-
-        $modules_to_cert = array();
-
-        if ($sending_criteria = $DB->get_record('cert_sending_criteria', array('gradecurricularid'=>$grade_curricular->id))) {
-            $modules_to_cert = $DB->get_records('cert_modules_to_cert', array('sending_criteria_id'=>$sending_criteria->id));
-        }
-
-        //obrigatórios
-        $mandatory_courses = array();
-        foreach ($modules_to_cert as $mc) {
-            $mandatory_courses[$mc->moduleid] = $DB->get_record('course', array('id'=>$mc->moduleid));
-        }
-
-        $approved_students = verify_approval($approved_students, $grade_curricular, $mandatory_courses, GC_MANDATORY);
-
-        //optativos
-        $courses = self::get_grade_courses($grade_curricular->id, true);
-
-        $optative_courses = array();
-        foreach ($courses as $courseid => $course) {
-            if ($course->type == GC_OPTIONAL) $optative_courses[$courseid] = $course;
-        }
-
-        $approved_students = verify_approval($approved_students, $grade_curricular, $optative_courses, GC_OPTIONAL);
+        $courses = self::get_courses($grade_curricular->id, true);
+        
+        $approved_students = self::verify_approved_students($grade_curricular, $courses, $students);
 
         return $approved_students;
     }
 
-    public static function verify_approval($approved_students, $grade_curricular, $courses, $modules_type) {
+    public static function verify_approved_students($grade_curricular, $courses, $students) {
         global $DB;
-
-        $completions_info = get_completions_info($courses);
-
-        foreach ($approved_students as $as) {
-            if (!isset($approved_students[$as->id]->mandatory_approved_courses)) $approved_students[$as->id]->mandatory_approved_courses = array();
-            if (!isset($approved_students[$as->id]->mandatory_not_approved_courses)) $approved_students[$as->id]->mandatory_not_approved_courses = array();
-            if (!isset($approved_students[$as->id]->optative_approved_courses)) $approved_students[$as->id]->optative_approved_courses = array();
-            if (!isset($approved_students[$as->id]->optative_not_approved_courses)) $approved_students[$as->id]->optative_not_approved_courses = array();
-
-            foreach ($courses as $c) {
-                if ($completions_info[$c->id]->is_course_complete($as->id)){
-                    if ($modules_type == GC_MANDATORY) {
-                        $approved_students[$as->id]->mandatory_approved_courses[$c->id] = $c->fullname;
-                    } elseif ($modules_type == GC_OPTIONAL) {
-                        $approved_students[$as->id]->optative_approved_courses[$c->id] = $c->fullname;
-                    }
-                } else {
-                    if ($modules_type == GC_MANDATORY) {
-                        $approved_students[$as->id]->mandatory_not_approved_courses[$c->id] = $c->fullname;
-                    } elseif ($modules_type == GC_OPTIONAL) {
-                        $approved_students[$as->id]->optative_not_approved_courses[$c->id] = $c->fullname;
-                    }
-                }
-            }
-        }
-
-        return $approved_students;
-    }
-
-    public static function get_approved_students($grade_curricular, $students) {
-        global $DB;
-
-        $mandatory_modules = $optative_modules = $approval_criteria = $approval_modules = array();
-
-        $courses = self::get_grade_courses($grade_curricular->id, true);
-
-        if ($approval_criteria = $DB->get_record('grade_curricular_ap_criteria', array('gradecurricularid'=>$grade_curricular->id))) {
-            $approval_modules = $DB->get_records_menu('grade_curricular_ap_modules', array(
-                                                      'approval_criteria_id'=>$approval_criteria->id,
-                                                      'selected'=>1), '', 'moduleid, weight');
-        } else {
-            //TODO Se isso acontecer, provavelmente a grade curricular não foi corretamente configurada.
-            return array();
-        }
-
-        foreach ($courses as $courseid => $course) {
-            if ($course->type == GC_MANDATORY) {
-                if (array_key_exists($courseid, $approval_modules)) {
-                    $mandatory_modules[$courseid] = $course;
-                }
-            } elseif ($course->type == GC_OPTIONAL) {
-                $optative_modules[$courseid] = $course;
-            }
-        }
-
-        $data_to_send = $mandatory_data = $optative_data = array();
-
-        //Verifica se existem cursos obrigatórios, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
-        if (!empty($mandatory_modules) && ($approval_criteria->mandatory_courses))
-            $mandatory_data = get_approved_students_by_module_type($grade_curricular, $mandatory_modules, $module_type = GC_MANDATORY, $approval_criteria, $approval_modules, $students);
-        //Verifica se existem cursos optativos, e se os mesmos foram marcados para serem considerados nos critérios de aprovação.
-        if (!empty($optative_modules) && ($approval_criteria->optative_courses))
-            $optative_data = get_approved_students_by_module_type($grade_curricular, $optative_modules, $module_type = GC_OPTIONAL, $approval_criteria, $approval_modules, $students);
 
         $approved_students = array();
 
-        //Se os cursos optativos e obrigatórios vão ser considerados.
-        if ($approval_criteria->mandatory_courses && $approval_criteria->optative_courses) {
-            //Se existem cursos optativos e obrigatórios.
-            if (!empty($mandatory_modules) && !empty($optative_modules))
-                $approved_students = array_intersect_key($mandatory_data, $optative_data);
-            //Se existem apenas cursos obrigatórios.
-            elseif (!empty($mandatory_modules))
-                $approved_students = $mandatory_data;
-            //Se existem apenas cursos optativos.
-            elseif (!empty($optative_modules))
-                $approved_students = $optative_data;
-
-            //Se não existem cursos optativos e obrigatórios.
-            return $approved_students;
-
-        //Se apenas os cursos obrigatórios vão ser considerados.
-        } elseif ($approval_criteria->mandatory_courses) {
-            //Se existem cursos obrigatórios.
-            if (!empty($mandatory_modules))
-                $approved_students = $mandatory_data;
-
-            //Se não existem cursos obrigatórios.
-            return $approved_students;
-
-        //Se apenas os cursos optativos vão ser considerados.
-        } elseif ($approval_criteria->optative_courses) {
-            //Se existem cursos optativos.
-            if (!empty($optative_modules))
-                $approved_students = $optative_data;
-
-            //Se não existem cursos optativos.
-            return $approved_students;
-        }
-
-        return $approved_students;
-    }
-
-    public static function prepare_course_grade(&$courses, $approval_modules) {
-        $grade_items = array();
-
-        foreach($courses AS $courseid=>$course) {
-            $course->grade_item = grade_item::fetch_course_item($courseid);
-
-            // Se o módulo for do tipo um, então é obrigatório, e caso seu peso não esteja definido, o seu valor será igual a zero.
-            // Se o módulo for do tipo dois, então é optativo, e seu peso é igual a um.
-            if ($course->type == GC_MANDATORY) {
-                $course->grade_item->aggregationcoef = isset($approval_modules[$courseid]) ? $approval_modules[$courseid] : 0;
-            } elseif ($course->type == GC_OPTIONAL) {
-                $course->grade_item->aggregationcoef = 1;
-            }
-
-            $grade_items[$course->grade_item->id] =& $course->grade_item;
-        }
-
-        return $grade_items;
-    }
-
-    public static function get_approved_students_by_module_type($grade_curricular, $courses, $module_type, $approval_criteria, $approval_modules = array(), $students) {
-        global $DB;
-
-        $completions_info = get_completions_info($courses);
-
-        $grade_items = prepare_course_grade($courses, $approval_modules);
-
-        $grade_category = new grade_category();
-        $grade_category->aggregation = GRADE_AGGREGATE_WEIGHTED_MEAN;
+        $completions_info = self::get_completions_info($courses);
 
         if (empty($students)) {
             $students = self::get_all_students($grade_curricular);
         }
 
-        $approved_on_selected_modules = array();
-        $approved_with_score = array();
-
         foreach($students AS $userid=>$user) {
-            $approved_courses = array();
-            $not_approved_courses = array();
-            $count_optional = 0;
+            $count_optative = 0;
             $approved = true;
+            $student_courses = array();
 
-            $grade_values = array();
             foreach($courses AS $courseid=>$course) {
-                $course_grade = new grade_grade(array('itemid'=>$course->grade_item->id, 'userid'=>$userid));
-                $finalgrade = $course_grade->finalgrade;
-                $grade = grade_format_gradevalue($finalgrade, $course->grade_item, true);
-                $grade_values[$course->grade_item->id] = grade_grade::standardise_score($finalgrade,
-                                                                                        $course->grade_item->grademin,
-                                                                                        $course->grade_item->grademax, 0, 10);
-
-                if ($module_type == GC_OPTIONAL) {
+                if ($course->type == GC_OPTIONAL) {
                     $context = context_course::instance($courseid);
                     if (is_enrolled($context, $user)) {
                         if ($completions_info[$courseid]->is_course_complete($userid)){
-                            $approved_courses[$courseid] = $course->fullname;
-                            $count_optional++;
-                        } else {
-                            $not_approved_courses[$courseid] = $course->fullname;
-                            $approved = false;
+                            if ($course->workload > 0) {
+                                $student_courses[$courseid] = $course->fullname;
+                            }
+                            
+                            $count_optative++;
                         }
                     }
-                } elseif ($module_type == GC_MANDATORY) {
+                } elseif ($course->type == GC_MANDATORY) {
                     if ($completions_info[$courseid]->is_course_complete($userid)){
-                        $approved_courses[$courseid] = $course->fullname;
+                        if ($course->workload > 0) {
+                            $student_courses[$courseid] = $course->fullname;
+                        }
                     } else {
-                        $not_approved_courses[$courseid] = $course->fullname;
                         $approved = false;
                     }
                 }
             }
 
-            if ($approved) {
-                if ($module_type == GC_OPTIONAL) {
-                    if ($count_optional >= $grade_curricular->minoptionalcourses) {
-                        $approved_on_selected_modules[$userid] = $user;
-                    } else {
-                        $not_approved_on_selected_modules[$userid] = $user;
-                    }
-                } else {
-                    $approved_on_selected_modules[$userid] = $user;
-                }
-            } else {
-                $not_approved_on_selected_modules[$userid] = $user;
-            }
-
-            asort($grade_values, SORT_NUMERIC);
-            $aggregated_grade = $grade_category->aggregate_values($grade_values, $grade_items);
-            $aggregated_grade = round($aggregated_grade, 1);
-
-            if ($module_type == GC_MANDATORY) {
-                if ($aggregated_grade >= $approval_criteria->grade_option) {
-                    $approved_with_score[$userid] = $user;
-                } else {
-                    $not_approved_with_score[$userid] = $user;
-                }
-            } elseif ($module_type == GC_OPTIONAL) {
-                if ($aggregated_grade >= $approval_criteria->optative_grade_option) {
-                    $approved_with_score[$userid] = $user;
-                } else {
-                    $not_approved_with_score[$userid] = $user;
-                }
-            }
+            if ($approved && ($count_optative >= $grade_curricular->minoptionalcourses)) {
+                $user->courses = $student_courses;
+                $approved_students[$userid] = $user;
+            } 
         }
 
-        $users_to_send = array();
-
-        //Verificar quais usuários serão enviados.
-        if ($module_type == GC_MANDATORY) {
-            if ($approval_criteria->approval_option && $approval_criteria->average_option)
-                $users_to_send = array_intersect_key($approved_on_selected_modules, $approved_with_score);
-            elseif ($approval_criteria->approval_option)
-                $users_to_send = $approved_on_selected_modules;
-            elseif ($approval_criteria->average_option)
-                $users_to_send = $approved_with_score;
-        } elseif ($module_type == GC_OPTIONAL) {
-            if ($approval_criteria->optative_approval_option == 1)
-                $users_to_send = $approved_on_selected_modules;
-            elseif ($approval_criteria->optative_approval_option == 2)
-                $users_to_send = $approved_with_score;
-        }
-
-        return $users_to_send;
+        return $approved_students;
     }
 
     public static function get_completions_info($courses) {
         $completions_info = array();
 
-        foreach($courses AS $id=>$course) {
+        foreach($courses as $id => $course) {
             $completions_info[$id] = new completion_info($course);
         }
 
