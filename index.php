@@ -104,7 +104,7 @@ switch ($action) {
         $mform = new local_grade_curricular_modules_form(null, $toform);
                 
         if ($formdata = $mform->get_data()) {
-            local_grade_curricular::save_modules($contextid, $category);
+            local_grade_curricular::save_modules($contextid, $category, $formdata);
             redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'modules')));
         }
 

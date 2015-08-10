@@ -375,7 +375,7 @@ class local_grade_curricular {
         return $completions_info;
     }
 
-    public static function save_modules($contextid, $category) {
+    public static function save_modules($contextid, $category, $formdata) {
         global $DB, $SESSION;
 
         if (confirm_sesskey()) {
@@ -383,6 +383,32 @@ class local_grade_curricular {
             require_capability('local/grade_curricular:configure', $context);
 
             $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
+
+            $record = new stdclass();
+            $record->contextid = $contextid;
+            $record->minoptionalcourses = $formdata->minoptionalcourses;
+            $record->maxoptionalcourses = $formdata->maxoptionalcourses;
+            $record->optionalatonetime = $formdata->optionalatonetime;
+            $record->timemodified = time();
+
+            if ($DB->record_exists('grade_curricular', array('id' => $gradecurricularid))) {
+                $record->id = $gradecurricularid;
+                try {
+                    $DB->update_record('grade_curricular', $record);
+                } catch (Exception $e) {
+                    print_error($e);
+                }
+            } else {
+              try {
+                  $record->inscricoesactivityid = 0;
+                  $record->tutorroleid = 0;
+                  $record->studentcohortid = 0;
+                  $record->notecourseid = 0;
+                  $DB->insert_record('grade_curricular', $record);
+              } catch (Exception  $e) {
+                  print_error($e);
+              }
+            }
 
             $types = optional_param_array('type', array(), PARAM_INT);
             $workloads = optional_param_array('workload', array(), PARAM_INT);
@@ -466,27 +492,27 @@ class local_grade_curricular {
         
             $record = new stdclass();
             $record->contextid = $contextid;
-            $record->minoptionalcourses = $formdata->minoptionalcourses;
-            $record->maxoptionalcourses = $formdata->maxoptionalcourses;
             $record->inscricoesactivityid = $formdata->inscricoesactivityid;
-            $record->optionalatonetime = $formdata->optionalatonetime;
             $record->tutorroleid = $formdata->tutorroleid;
             $record->studentcohortid = $formdata->studentcohortid;
             $record->notecourseid = $formdata->notecourseid;
             $record->timemodified = time();
 
             if ($DB->record_exists('grade_curricular', array('id' => $gradecurricularid))) {
-              $record->id = $gradecurricularid;
-              try {
-                $DB->update_record('grade_curricular', $record);
-              } catch (Exception $e) {
-                print_error($e);
-              }
+                $record->id = $gradecurricularid;
+                try {
+                    $DB->update_record('grade_curricular', $record);
+                } catch (Exception $e) {
+                    print_error($e);
+                }
             } else {
               try {
-                $DB->insert_record('grade_curricular', $record);
+                  $record->minoptionalcourses = 0;
+                  $record->maxoptionalcourses = 0;
+                  $record->optionalatonetime = 0;
+                  $DB->insert_record('grade_curricular', $record);
               } catch (Exception  $e) {
-                print_error($e);
+                  print_error($e);
               }
             }
         }
