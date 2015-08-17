@@ -53,22 +53,6 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_potential_courses($category_path, $gradeid) {
-        global $DB;
-
-        $catids = explode('/', $category_path);
-        unset($catids[0]);
-        list($in_sql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
-        $sql = "SELECT c.id, c.shortname, c.fullname,
-                       gcc.id AS gradecourseid, gcc.type, gcc.workload, gcc.inscribestartdate, gcc.inscribeenddate, gcc.coursedependencyid
-                  FROM {course} c
-             LEFT JOIN {grade_curricular_courses} gcc ON (gcc.courseid = c.id AND gcc.gradecurricularid = :gradeid)
-                 WHERE c.category {$in_sql}
-              ORDER BY c.fullname";
-        $params['gradeid'] = $gradeid;
-        return $DB->get_records_sql($sql, $params);
-    }
-
     /**
      * Returns students from the cohort associated to the gradecurricular or
      * subscribed on at least one of the grade_curricular courses on the same category as the grade_curricular if there is no associated cohort
@@ -77,42 +61,76 @@ class local_grade_curricular {
      * @param string groupname
      * @return array
      */
-    public static function get_students($grade, $str_groupids, $days_before, $studentsorderby) {
+    public static function get_students($gradeid, $groupname='', $studentsorderby='name') {
         global $DB, $CFG;
 
-        $roleids = explode(',', $CFG->gradebookroles);
-        list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+        $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
+        if($grade->inscricoesactivityid > 0) {
+            $roleids = explode(',', $CFG->gradebookroles);
+            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $timebefore = strtotime('-' . $days_before . ' days');
-        $params['contextlevel'] = CONTEXT_COURSE;
-        $params['gradeid'] = $grade->id;
-        $params['timebefore'] = $timebefore;
-        $params['ignore'] = GC_IGNORE;
+            $from = "FROM {grade_curricular} gc
+                     JOIN {grade_curricular_courses} gcc 
+                       ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {inscricoes_activities} ia 
+                       ON (ia.id = gc.inscricoesactivityid)
+                     JOIN {inscricoes_cohorts} ic 
+                       ON (ic.activityid = ia.id AND ic.roleid {$in_sql})
+                     JOIN {cohort_members} chm 
+                       ON (chm.cohortid = ic.cohortid)
+                     JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid";
+            $params['gradeid'] = $gradeid;
+            $params['ignore'] = GC_IGNORE;
+        } else if($grade->studentcohortid > 0) {
+            $from = "FROM {grade_curricular} gc
+                     JOIN {grade_curricular_courses} gcc 
+                       ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {cohort_members} chm
+                     JOIN {user} u 
+                       ON (u.id = chm.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid
+                        AND chm.cohortid = :cohortid";
+            $params = array('cohortid' => $grade->studentcohortid,
+                            'gradeid'  => $gradeid,
+                            'ignore'   => GC_IGNORE);
+        } else {
+            $roleids = explode(',', $CFG->gradebookroles);
+            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $order = $studentsorderby == 'lastaccess' ? 'last_access ASC' : 'fullname';
-        $sql = "SELECT uj.id, uj.fullname, uj.str_courseids,
-                       COUNT(*) as count_actions,
-                       SUM(CASE WHEN l.time >= :timebefore THEN 1 ELSE 0 END) AS recent_actions,
-                       MIN(l.time) as first_access,
-                       MAX(l.time) as last_access
-                  FROM {grade_curricular} gc
-                  JOIN {grade_curricular_courses} gcc
-                    ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
-                  JOIN (SELECT u.id, CONCAT(u.firstname, ' ', u.lastname) as fullname,
-                               GROUP_CONCAT(DISTINCT c.id SEPARATOR ',') as str_courseids
-                          FROM {groups} g
-                          JOIN {groups_members} gm ON (gm.groupid = g.id)
-                          JOIN {course} c ON (c.id = g.courseid)
-                          JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
-                          JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid {$in_sql})
-                          JOIN {user} u ON (u.id = ra.userid)
-                         WHERE g.id IN ({$str_groupids})
-                         GROUP BY u.id
-                       ) uj
-             LEFT JOIN {log} l ON (l.course = gcc.courseid AND l.userid = uj.id)
-                 WHERE gc.id = :gradeid
-              GROUP BY uj.id
-              ORDER BY {$order}";
+            $from = "FROM {grade_curricular} gc
+                     JOIN {context} cctx ON (cctx.id = gc.contextid)
+                     JOIN {course_categories} cc ON (cc.id = cctx.instanceid)
+                     JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
+                     JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
+                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
+                     JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid";
+            $params['contextlevel'] = CONTEXT_COURSE;
+            $params['gradeid'] = $gradeid;
+            $params['ignore'] = GC_IGNORE;
+        }
+
+        $join_group = '';
+        if (!empty($groupname)) {
+            $join_group = "JOIN {groups} g ON (g.courseid = gcc.courseid AND g.name = :groupname)
+                           JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)";
+            $params['groupname'] = $groupname;
+        } 
+
+        if ($studentsorderby == 'name') {
+            $orderby = "CONCAT(u.firstname, ' ', u.lastname)";
+        } else {
+            $orderby = $studentsorderby;
+        }
+
+        $user_fields = implode(',', get_all_user_name_fields());
+        $sql = "SELECT DISTINCT u.id, u.username, {$user_fields}, CONCAT(u.firstname, ' ', u.lastname) as fullname
+                 {$from}
+                 {$join_group}
+                 {$where}
+                ORDER BY {$orderby}";
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -139,7 +157,7 @@ class local_grade_curricular {
               GROUP BY u.id
               ORDER BY firstname, lastname";
         return $DB->get_records_sql($sql, $params);
-    }
+  }
 
     /**
      * Returns the names from groups included in the grade_curricular courses
@@ -169,32 +187,6 @@ class local_grade_curricular {
         sort($keys);
         return $keys;
     }
-
-    // retorna os nomes dos grupos dos cursos da grade curricular aos quais o usuário tem acesso
-    // juntamente com uma lista de ids dos grupos com cada nome
-    public static function get_groups($grade, $userid) {
-        global $DB;
-
-        $params = array('gradeid'=>$grade->id, 'ignore'=>GC_IGNORE);
-
-        $context = context::instance_by_id($grade->contextid, MUST_EXIST);
-        if (has_capability('moodle/site:accessallgroups', $context)) {
-            $join = '';
-        } else {
-            $join = "JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = :userid)";
-            $params['userid'] = $userid;
-        }
-
-        $sql = "SELECT g.name, GROUP_CONCAT(g.id SEPARATOR ',') as str_groupids
-                  FROM {grade_curricular} gc
-                  JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id)
-                  JOIN {groups} g ON (g.courseid = gcc.courseid)
-                  {$join}
-                 WHERE gc.id = :gradeid
-                   AND gcc.type != :ignore
-              GROUP BY g.name";
-        return $DB->get_records_sql($sql, $params);
-}
 
     /**
      * Returns an array of grade curriculares associated to the student and courseid
@@ -233,6 +225,49 @@ class local_grade_curricular {
             $params['ignore'] = GC_IGNORE;
         return $DB->get_records_sql($sql, $params);
     }
+
+    public static function get_potential_courses($category_path, $gradeid) {
+        global $DB;
+
+        $catids = explode('/', $category_path);
+        unset($catids[0]);
+        list($in_sql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
+        $sql = "SELECT c.id, c.shortname, c.fullname,
+                       gcc.id AS gradecourseid, gcc.type, gcc.workload, gcc.inscribestartdate, gcc.inscribeenddate, gcc.coursedependencyid
+                  FROM {course} c
+             LEFT JOIN {grade_curricular_courses} gcc ON (gcc.courseid = c.id AND gcc.gradecurricularid = :gradeid)
+                 WHERE c.category {$in_sql}
+              ORDER BY c.fullname";
+        $params['gradeid'] = $gradeid;
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    // retorna os nomes dos grupos dos cursos da grade curricular aos quais o usuário tem acesso
+    // juntamente com uma lista de ids dos grupos com cada nome
+    public static function get_groups($grade, $userid) {
+        global $DB;
+
+        $params = array('gradeid'=>$grade->id, 'ignore'=>GC_IGNORE);
+
+        $context = context::instance_by_id($grade->contextid, MUST_EXIST);
+        if (has_capability('moodle/site:accessallgroups', $context)) {
+            $join = '';
+        } else {
+            $join = "JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = :userid)";
+            $params['userid'] = $userid;
+        }
+
+        $sql = "SELECT g.name, GROUP_CONCAT(g.id SEPARATOR ',') as str_groupids
+                  FROM {grade_curricular} gc
+                  JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id)
+                  JOIN {groups} g ON (g.courseid = gcc.courseid)
+                  {$join}
+                 WHERE gc.id = :gradeid
+                   AND gcc.type != :ignore
+              GROUP BY g.name";
+        return $DB->get_records_sql($sql, $params);
+    }
+
 
     public static function get_cohorts($context) {
         global $DB;
@@ -325,7 +360,7 @@ class local_grade_curricular {
         $completions_info = self::get_completions_info($courses);
 
         if (empty($students)) {
-            $students = self::get_all_students($grade_curricular);
+            $students = self::get_students($grade_curricular->id);
         }
 
         foreach($students AS $userid=>$user) {

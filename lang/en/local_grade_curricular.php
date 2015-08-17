@@ -62,7 +62,7 @@ $string['modules'] = 'Configuração dos cursos Moodle';
 $string['gradecurricular_additional'] = 'Configurações adicionais';
 
 //help buttons
-$string['minoptionalcourses_help'] = 'Número mínimo de cursos optativos que o estudante tem que se inscrever e ser aprovado, para que seja aprovado na grade curricular.';
+$string['minoptionalcourses_help'] = 'Número mínimo de cursos optativos que o estudante tem que se inscrever e completar, para que seja aprovado na Grade Curricular.';
 $string['maxoptionalcourses_help'] = 'Número máximo de cursos optativos em que o estudante pode se inscrever.';
 $string['optionalatonetime_help'] = 'Help';
 $string['studentcohort_help'] = 'Help';
