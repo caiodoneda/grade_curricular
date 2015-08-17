@@ -15,30 +15,29 @@ $string['createconfirm'] = 'Criar uma nova grade curricular associada a esta cat
 
 $string['errors'] = 'Há valores inválidos para os campos indicados abaixo';
 $string['invalid_workload'] = 'Carga horária deve estar no intervalo [0..360]';
-$string['dependecy_not_opt_dem'] = 'Pré-requisito deve ser um módulo obrigatório ou optativo';
+$string['dependecy_not_opt_dem'] = 'Pré-requisito deve ser um curso Moodle obrigatório ou optativo';
 $string['end_before_start'] = 'Data de final de inscrições é anterior à de início';
 
-$string['configure_courses'] = 'Configuração dos módulos';
+$string['configure_courses'] = 'Configuração dos cursos Moodle';
 $string['inscricoesactivityid'] = 'Sistema de inscrições ';
 $string['studentrole'] = 'Papel de estudantes: ';
-$string['minoptionalcourses'] = 'Número mínimo de módulos optativos: ';
-$string['maxoptionalcourses'] = 'Número máximo de módulos optativos: ';
-$string['optionalatonetime'] = 'Selecionar módulos optativos em bloco: ';
+$string['minoptionalcourses'] = 'Número mínimo de cursos Moodle optativos: ';
+$string['maxoptionalcourses'] = 'Número máximo de cursos Moodle optativos: ';
+$string['optionalatonetime'] = 'Selecionar cursos Moodle optativos em bloco: ';
 $string['tutors_notes'] = 'Anotações de tutores sobre estudantes';
 $string['studentcohort'] = 'Coorte de estudantes: ';
 $string['tutorrole'] = 'Papel de tutor: ';
-$string['notecourse'] = 'Módulo onde serão guardadas as anotações dos tutores: ';
+$string['notecourse'] = 'curso Moodle onde serão guardadas as anotações dos tutores: ';
 $string['no_notecourse'] = '-- Não serão feitas anotações pelos tutores';
 $string['students_selection'] = 'Seleção de estudantes ';
 
 $string['mandatory'] = 'obrigatório';
-$string['optative_modules'] = 'Módulos optativos ';
+$string['optative_modules'] = 'cursos Moodle optativos ';
 $string['shorttype_1'] = 'obr';
 $string['type_1'] = 'obrigatório';
 $string['optional'] = 'optativo';
 $string['type_2'] = 'optativo';
 $string['shorttype_2'] = 'opt';
-$string['approved_in_all_apt'] = 'Aprovação em todos os módulos optativos que o estudante se inscreveu.';
 $string['tcc'] = 'Trabalho de conclusão de curso';
 $string['type_3'] = 'Trabalho de conclusão de curso';
 $string['shorttype_3'] = 'TCC';
@@ -48,7 +47,7 @@ $string['activity'] = 'Atividade no Sistema de Inscrições: ';
 $string['no_activity'] = '-- Não relacionar a atividade';
 $string['no_cohort'] = '-- Nenhum cohort selecionado';
 
-$string['coursename'] = 'Nome do módulo';
+$string['coursename'] = 'Nome do curso Moodle';
 $string['type'] = 'Tipo';
 $string['workload'] = 'Carga (horas, créditos, etc)';
 $string['dependency'] = 'Pré-requisito p/ inscrição';
@@ -59,13 +58,12 @@ $string['tutors'] = 'Tutores';
 
 //tabs names
 
-$string['modules'] = 'Configuração dos módulos';
-$string['gradecurricular'] = 'Configuração da grade';
-$string['approval_criteria'] = 'Critérios de aprovação p/certificado';
+$string['modules'] = 'Configuração dos cursos Moodle';
+$string['gradecurricular_additional'] = 'Configurações adicionais';
 
 //help buttons
-$string['minoptionalcourses_help'] = 'Help';
-$string['maxoptionalcourses_help'] = 'Help';
+$string['minoptionalcourses_help'] = 'Número mínimo de cursos optativos que o estudante tem que se inscrever e ser aprovado, para que seja aprovado na grade curricular.';
+$string['maxoptionalcourses_help'] = 'Número máximo de cursos optativos em que o estudante pode se inscrever.';
 $string['optionalatonetime_help'] = 'Help';
 $string['studentcohort_help'] = 'Help';
 $string['tutorrole_help'] = 'Help';
@@ -74,7 +72,7 @@ $string['students_selection_help'] = 'Seleção de estudantes ';
 $string['notecourse_help'] = 'Anotações de tutores sobre estudantes';
 
 //errors
-$string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao número máximo de módulos optativos. ';
-$string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de módulos optativos. ';
+$string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao valor definido no campo "Número máximo de cursos Moodle optativos".';
+$string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de cursos Moodle optativos. ';
 
-$string['morethanerror'] = 'Esse valor precisa ser menor ou igual ao número de cursos optativos existentes.';
+$string['morethanerror'] = 'Esse valor precisa ser menor ou igual ao número de cursos Moodle optativos existentes.';

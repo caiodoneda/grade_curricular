@@ -5,10 +5,10 @@
 <h4><strong><p>cursos Moodle optativos</p></strong></h4>
 <ul>
 	<li><i>Número mínimo de cursos Moodle optativos:</i>
-		<p>Número mínimo de cursos optativos que o estudante tem que se inscrever e ser aprovado, para que seja aprovado na grade curricular.</p>
+		<p>Número mínimo de cursos optativos que o estudante tem que se inscrever e completar, para que seja aprovado na grade curricular.</p>
 	</li>
 	<li><i>Número máximo de cursos Moodle optativos:</i>
-	    <p>Número máximo de cursos optativos em que o estudante pode se inscrever. Essa informação é utilizada em outro plugin, o bloco de inscrições.</p>
+	    <p>Número máximo de cursos optativos em que o estudante pode se inscrever. Essa informação é utilizada no bloco de inscrições.</p>
 	</li>
 	<li><i>Selecionar cursos Moodle optativos em bloco:</i>
 	</li>	
@@ -19,8 +19,8 @@
 	<ul>
 		<li>Tipo: (obrigatório, optativo, TCC, ou não considerar esse curso)</li>
 		<li>Carga horária: Esse campo além de informar a carga horária equivalente a um curso Moodle, ainda é utilizado como critério de envio para o Sistema de Certificados, pois caso seja salvo como zero, o curso não será enviado (independentemente do seu tipo) apesar de, continuar sendo considerado para aprovação ou não de um estudante.</li>
-		<li>Período de incrições: Define a data (início e fim) do período de inscrição nesse cursos Moodle.</li>
-		<li>Pré-requisito: Esse campo é utilizado para definir uma amarração entre os cursos da Grade curricular, e não deixar um estudante se inscrever em um curso que exija outro como pré-requisito.</li>
+		<li>Período de incrições: Define a data (início e fim) do período de inscrição nesse curso Moodle.</li>
+		<li>Pré-requisito: Esse campo é utilizado para definir uma estrutura entre os cursos da Grade curricular, e evita por exemplo, que um estudante se inscreva em um curso que não tenha o pré-requisito cumprido.</li>
 	</ul>
 </p>
 
@@ -40,6 +40,10 @@
 <h4><strong><p>Anotações de tutores sobre estudantes</p></strong></h4>
 
 <ul>
-	<li>curso Moodle onde serão guardadas as anotações dos tutores</li>
-	<li>Papel de tutor</li>
+	<li><i>curso Moodle onde serão guardadas as anotações dos tutores</i>
+		<p>Nesse campo deve-se informar qual curso Moodle, irá armazenar as anotações feitas pelos tutores, com a possibilidade de não salvar em nenhum curso Moodle.</p>
+	</li>
+	<li><i>Papel de tutor</i>
+		<p>Nesse campo deve-se informar qual papel do Moodle corresponde ao papel de Tutor.</p>
+	</li>
 </ul>

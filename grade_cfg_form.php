@@ -41,7 +41,7 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         }
 
         $mform->addelement('html', html_writer::empty_tag('input', 
-                                   array('type'=>'hidden', 'name'=>'action', 'value'=>'gradecurricular')));
+                                   array('type'=>'hidden', 'name'=>'action', 'value'=>'gradecurricular_additional')));
         $mform->addelement('html', html_writer::empty_tag('input', 
                                    array('type'=>'hidden', 'name'=>'sesskey', 'value'=>sesskey())));
         $mform->addelement('html', html_writer::empty_tag('input',

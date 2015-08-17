@@ -83,7 +83,7 @@ if(!$grade) {
     }
 }
 
-$tab_items = array('modules', 'gradecurricular');
+$tab_items = array('modules', 'gradecurricular_additional');
 $tabs = array();
 
 foreach($tab_items AS $act) {
@@ -109,7 +109,7 @@ switch ($action) {
         }
 
         break;
-    case 'gradecurricular':
+    case 'gradecurricular_additional':
         require_once('./grade_cfg_form.php');
         
         $toform = array('category'=>$category, 'grade'=>$grade, 'context'=>$context);
@@ -118,7 +118,7 @@ switch ($action) {
                 
         if ($formdata = $mform->get_data()) {
             local_grade_curricular::save_cfg_grade($contextid, $formdata);
-            redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular')));
+            redirect(new moodle_url('/local/grade_curricular/index.php', array('contextid'=>$contextid, 'action'=>'gradecurricular_additional')));
         }
 
         break;

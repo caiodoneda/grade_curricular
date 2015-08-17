@@ -45,7 +45,7 @@ class local_grade_curricular_modules_form extends moodleform {
 
         //Módulos optativos
         $mform->addElement('header', 'optative_modules', get_string('optative_modules', 'local_grade_curricular'));
-        
+        $mform->setExpanded('optative_modules', false);
         $mform->addElement('select', 'minoptionalcourses', 
                            get_string('minoptionalcourses', 'local_grade_curricular'), $options_opt);
         $mform->setType('minoptionalcourses', PARAM_INT);
@@ -64,7 +64,8 @@ class local_grade_curricular_modules_form extends moodleform {
         $mform->setType('optionalatonetime', PARAM_INT);
         $mform->setDefault('optionalatonetime', $pre_data->optionalatonetime);
         $mform->addHelpButton('optionalatonetime', 'optionalatonetime', 'local_grade_curricular');
-        
+        $mform->closeHeaderBefore('modules');
+
         $out = "<BR>";
         
         if(isset($SESSION->errors)) {
@@ -101,6 +102,8 @@ class local_grade_curricular_modules_form extends moodleform {
             $attributes['disabled'] = 'disabled';
         }
 
+        $mform->addElement('header', 'modules', "cursos Moodle");
+        $mform->setExpanded('modules', false);
         $data = array();
         foreach($courses as $c) {
             $tab = new html_table();
