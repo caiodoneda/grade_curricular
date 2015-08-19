@@ -29,12 +29,15 @@
 <h4><strong><p>Seleção de estudantes</p></strong></h4>
 
 <ul> 
-	<li><i>Atividade no Sistema de Inscrições:</i> 
-	    <p>Essa configuração é necessária sempre que se quiser utilizar o Sistema de Inscrições como método de inscrição de pessoas, junto com o Sistema de Certificados para certificação. Uma vez salva essa configuração, o plugin local de certificados sabe para qual atividade no sistema de inscrições deve enviar os dados. Essa configuração é salva na tabela <i>grade_curricular</i> na coluna <i>inscricoesactivityid</i>.</p> 
-	</li>
 	<li><i>Cohort de estudantes:</i>
-		<p>A grade curricular foi concebida para existir independentemente do Sistema de Inscrições e Certificados, e caso esses sistemas não forem utilizados, existe a opção de utilizar esse outro método para seleção dos estudantes (através de cohorts) que é utlizado no bloco de inscrições como forma de saber em que grupo esses estudantes se encontram. Essa configuração é salva na tabela <i>grade_curricular</i> na coluna <i>studentcohortid</i>.</p> 
+		<p>A grade curricular foi concebida para existir independentemente do Sistema de Inscrições e Certificados, e caso esses sistemas não forem utilizados, existe a opção de utilizar esse método para seleção dos estudantes (através de cohorts) que é utlizado como forma de saber em que grupo esses estudantes se encontram. Essa configuração é salva na tabela <i>grade_curricular</i> na coluna <i>studentcohortid</i>.</p> 
 	</li>
+	<li><i>Atividade no Sistema de Inscrições:</i> 
+	    <p>Caso o Sistema de Inscrições seja usado como método de inscrição de pessoas, esse campo irá refletir no conjunto de estudantes correspondentes à essa Grade Curricular. Essa configuração é utilizada em outro plugins, como no plugin local de certificados, que sabe para qual atividade no sistema de inscrições deve enviar os dados uma vez feita essa configuração. O valor desse campo é salvo na tabela <i>grade_curricular</i> na coluna <i>inscricoesactivityid</i>.</p> 
+	</li>
+
+	<p><i>Caso nenhuma das seleções acima seja utilizada, os estudantes serão selecionados a partir da categoria onde a Grade Curricular for criada.</i></p> 
+	
 </ul>
 
 <h4><strong><p>Anotações de tutores sobre estudantes</p></strong></h4>
