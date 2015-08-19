@@ -36,7 +36,9 @@
 	    <p>Caso o Sistema de Inscrições seja usado como método de inscrição de pessoas, esse campo irá refletir no conjunto de estudantes correspondentes à essa Grade Curricular. Essa configuração é utilizada em outro plugins, como no plugin local de certificados, que sabe para qual atividade no sistema de inscrições deve enviar os dados uma vez feita essa configuração. O valor desse campo é salvo na tabela <i>grade_curricular</i> na coluna <i>inscricoesactivityid</i>.</p> 
 	</li>
 
-	<p><i>Caso nenhuma das seleções acima seja utilizada, os estudantes serão selecionados a partir da categoria onde a Grade Curricular for criada.</i></p> 
+	<li>
+		Caso nenhuma das seleções acima seja utilizada, os estudantes serão selecionados a partir da categoria onde a Grade Curricular for criada.
+	</li>
 	
 </ul>
 

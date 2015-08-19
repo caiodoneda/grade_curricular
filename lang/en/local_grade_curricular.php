@@ -65,11 +65,16 @@ $string['gradecurricular_additional'] = 'Configurações adicionais';
 $string['minoptionalcourses_help'] = 'Número mínimo de cursos optativos que o estudante tem que se inscrever e completar, para que seja aprovado na Grade Curricular.';
 $string['maxoptionalcourses_help'] = 'Número máximo de cursos optativos em que o estudante pode se inscrever.';
 $string['optionalatonetime_help'] = 'Help';
-$string['studentcohort_help'] = 'Help';
-$string['tutorrole_help'] = 'Help';
-$string['inscricoesactivityid_help'] = 'Sistema de inscrições ';
+$string['studentcohort_help'] = 'A grade curricular foi concebida para existir independentemente do Sistema de Inscrições e Certificados,
+e caso esses sistemas não forem utilizados, existe a opção de utilizar esse método para seleção dos estudantes (através de cohorts)
+que é utlizado como forma de saber em que grupo esses estudantes se encontram';
+$string['tutorrole_help'] = 'Nesse campo deve-se informar qual papel do Moodle corresponde ao papel de Tutor.';
+$string['inscricoesactivityid_help'] = 'Caso o Sistema de Inscrições seja usado como método de inscrição de pessoas, esse campo irá
+refletir no conjunto de estudantes correspondentes à essa Grade Curricular. O plugin de certificados, usa essa informação para saber
+para qual atividade no sistema de inscrições deve enviar os dados.';
 $string['students_selection_help'] = 'Seleção de estudantes ';
-$string['notecourse_help'] = 'Anotações de tutores sobre estudantes';
+$string['notecourse_help'] = 'Nesse campo deve-se informar qual curso Moodle, irá armazenar as anotações feitas pelos tutores,
+com a possibilidade de não salvar em nenhum curso Moodle.';
 
 //errors
 $string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao valor definido no campo "Número máximo de cursos Moodle optativos".';
