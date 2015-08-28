@@ -61,7 +61,7 @@ class local_grade_curricular {
      * @param string groupname
      * @return array
      */
-    public static function get_students($gradeid, $groupname='', $studentsorderby='name') {
+    public static function get_students($gradeid, $groupname='', $studentsorderby='name', $search = '') {
         global $DB, $CFG;
 
         $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
@@ -117,7 +117,7 @@ class local_grade_curricular {
             $join_group = "JOIN {groups} g ON (g.courseid = gcc.courseid AND g.name = :groupname)
                            JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)";
             $params['groupname'] = $groupname;
-        } 
+        }
 
         if ($studentsorderby == 'name') {
             $orderby = "CONCAT(u.firstname, ' ', u.lastname)";
@@ -125,6 +125,11 @@ class local_grade_curricular {
             $orderby = $studentsorderby;
         }
 
+        if (!empty($search)) {
+            $where .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%" . $search . "%'";
+        }
+
+        //Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos, inclusive com o mesmo papel.
         $user_fields = implode(',', get_all_user_name_fields());
         $sql = "SELECT DISTINCT u.id, u.username, {$user_fields}, CONCAT(u.firstname, ' ', u.lastname) as fullname
                  {$from}
@@ -134,30 +139,102 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_all_students($grade) {
+    public static function get_students_groups($gradeid, $search = '', $studentsorderby = 'name') {
         global $DB, $CFG;
 
-        $roleids = explode(',', $CFG->gradebookroles);
-        list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+        $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
+        if($grade->inscricoesactivityid > 0) {
+            $roleids = explode(',', $CFG->gradebookroles);
+            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $params['contextlevel'] = CONTEXT_COURSE;
-        $params['gradeid'] = $grade->id;
-        $params['ignore'] = GC_IGNORE;
+            $from = "FROM {grade_curricular} gc
+                     JOIN {grade_curricular_courses} gcc
+                       ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {inscricoes_activities} ia
+                       ON (ia.id = gc.inscricoesactivityid)
+                     JOIN {inscricoes_cohorts} ic
+                       ON (ic.activityid = ia.id AND ic.roleid {$in_sql})
+                     JOIN {cohort_members} chm
+                       ON (chm.cohortid = ic.cohortid)
+                     JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid";
+            $params['gradeid'] = $gradeid;
+            $params['ignore'] = GC_IGNORE;
+        } else if($grade->studentcohortid > 0) {
+            $from = "FROM {grade_curricular} gc
+                     JOIN {grade_curricular_courses} gcc
+                       ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {cohort_members} chm
+                     JOIN {user} u
+                       ON (u.id = chm.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid
+                        AND chm.cohortid = :cohortid";
+            $params = array('cohortid' => $grade->studentcohortid,
+                'gradeid'  => $gradeid,
+                'ignore'   => GC_IGNORE);
+        } else {
+            $roleids = explode(',', $CFG->gradebookroles);
+            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT u.id, u.username, CONCAT(u.firstname, ' ', u.lastname) as fullname,
-                       GROUP_CONCAT(DISTINCT g.name SEPARATOR ';') as groupnames
-                  FROM {grade_curricular} gc
-                  JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
-                  JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
-                  JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
-                  JOIN user u ON (u.id = ra.userid)
-                  JOIN {groups} g ON (g.courseid = gcc.courseid)
-                  JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)
-                 WHERE gc.id = :gradeid
-              GROUP BY u.id
-              ORDER BY firstname, lastname";
-        return $DB->get_records_sql($sql, $params);
-  }
+            $from = "FROM {grade_curricular} gc
+                     JOIN {context} cctx ON (cctx.id = gc.contextid)
+                     JOIN {course_categories} cc ON (cc.id = cctx.instanceid)
+                     JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                     JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
+                     JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
+                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
+                     JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
+            $where = "WHERE gc.id = :gradeid";
+            $params['contextlevel'] = CONTEXT_COURSE;
+            $params['gradeid'] = $gradeid;
+            $params['ignore'] = GC_IGNORE;
+        }
+
+
+        $join_group = "JOIN {groups} g ON (g.courseid = gcc.courseid)
+                       JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)";
+
+        if ($studentsorderby == 'name') {
+            $orderby = "CONCAT(u.firstname, ' ', u.lastname)";
+        } else {
+            $orderby = $studentsorderby;
+        }
+
+        if (!empty($search)) {
+            $where .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%" . $search . "%'";
+        }
+
+        //Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos, inclusive com o mesmo papel.
+        $user_fields = implode(',', get_all_user_name_fields());
+        $sql = "SELECT u.id, u.username, {$user_fields}, CONCAT(u.firstname, ' ', u.lastname) as fullname, g.name as groupname
+                 {$from}
+                 {$join_group}
+                 {$where}
+                ORDER BY {$orderby}";
+
+        $records = $DB->get_recordset_sql($sql, $params);
+
+        $students = array();
+        foreach($records as $key => $record) {
+            $student = new stdClass();
+            $student->id = $record->id;
+            $student->username = $record->username;
+            $student->firstname = $record->firstname;
+            $student->lastname = $record->lastname;
+            $student->fullname = $record->fullname;
+            $student->groupnames = $record->groupname;
+
+            if (array_key_exists($student->id, $students)) {
+                if (strpos($students[$student->id]->groupnames, $student->groupnames) === false) {
+                    $students[$student->id]->groupnames .= ', ' . $student->groupnames;
+                }
+            } else {
+                $students[$student->id] = $student;
+            }
+        }
+
+        return $students;
+    }
 
     /**
      * Returns the names from groups included in the grade_curricular courses
@@ -179,13 +256,11 @@ class local_grade_curricular {
                 $allowedgroups = groups_get_all_groups($course->id, $USER->id);
             }
             foreach ($allowedgroups AS $group) {
-                $groupnames[format_string($group->name)] = true;
+                $groupnames[format_string($group->name)] = format_string($group->name);
             }
         }
 
-        $keys = array_keys($groupnames);
-        sort($keys);
-        return $keys;
+        return $groupnames;
     }
 
     /**
