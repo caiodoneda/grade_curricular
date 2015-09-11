@@ -418,8 +418,6 @@ class local_grade_curricular {
     }
 
     public static function get_approved_students($grade_curricular, $students = array()) {
-        global $DB;
-
         $courses = self::get_courses($grade_curricular->id, true);
         
         $approved_students = self::verify_approved_students($grade_curricular, $courses, $students);
@@ -428,8 +426,6 @@ class local_grade_curricular {
     }
 
     public static function verify_approved_students($grade_curricular, $courses, $students) {
-        global $DB;
-
         $approved_students = array();
 
         $completions_info = self::get_completions_info($courses);
