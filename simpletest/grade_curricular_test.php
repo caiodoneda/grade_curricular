@@ -12,7 +12,8 @@ if (!defined('MOODLE_INTERNAL')) {
 global $CFG;
 
 require_once($CFG->dirroot . '/local/grade_curricular/classes/grade_curricular.php'); // Include the code to test
-require_once($CFG->dirroot . '/completion/completion_completion.php');
+require_once($CFG->dirroot . '/lib/completionlib.php');
+require_once($CFG->dirroot . '/completion/criteria/completion_criteria_grade.php');
 
 /** This class contains the test cases for the functions in grade_curricular.php. */
 class grade_curricular_test extends advanced_testcase {
@@ -25,25 +26,18 @@ class grade_curricular_test extends advanced_testcase {
 	protected $completions_info;
 
     public function setUp() {
-    	global $DB;
+    	global $DB, $CFG;
+
+        //enabling course completion globally
+        $CFG->enablecompletion = 1;
 
     	$this->category = $this->getDataGenerator()->create_category();
     	$this->completions_info = array();
 
-    	for ($i = 1; $i <= 10; $i++) {
-    		$this->students[$i] = $this->getDataGenerator()->create_user();
-    		$this->courses[$i] = $this->getDataGenerator()->create_course(array('category' => $this->category->id));
-			$this->completions_info[$this->courses[$i]->id] =  new completion_info($this->courses[$i]);
-
-    	}
-
-    	//enrolling all the students in all the courses.
-    	foreach ($this->students as $key => $student) {
-    		foreach ($this->courses as $key => $course) {
-    			$this->getDataGenerator()->enrol_user($student->id, $course->id, 5);
-    		}
-    	}
-    	
+    	$this->create_and_enroll_students_at_courses();
+        $this->create_criterias_at_courses();
+        $this->grade_assing();
+            	
     	$this->grade_curricular = $this->create_fake_grade_curricular();
     	$this->grade_curricular_courses = $this->associate_courses_to_grade_curricular();
 
@@ -138,4 +132,43 @@ class grade_curricular_test extends advanced_testcase {
     	}
     }
 
+    protected function create_and_enroll_students_at_courses() {
+        global $DB;
+
+        for ($i = 1; $i <= 10; $i++) {
+            $this->students[$i] = $this->getDataGenerator()->create_user();
+            $this->courses[$i] = $this->getDataGenerator()->create_course(array('category' => $this->category->id));
+            $this->completions_info[$this->courses[$i]->id] =  new completion_info($this->courses[$i]);
+            $this->courses[$i]->enablecompletion = 1;
+            $DB->update_record('course', $this->courses[$i]);
+        }
+
+        foreach ($this->students as $key => $student) {
+            foreach ($this->courses as $key => $course) {
+                $this->getDataGenerator()->enrol_user($student->id, $course->id, 5);
+            }
+        }
+    }
+
+    protected function create_criterias_at_courses() {
+        foreach ($this->courses as $course) {
+            $completion = $this->completions_info[$course->id];
+            $data = new stdClass();
+            $data->id = $completion->course_id;
+            $data->criteria_grade = 1;
+            $data->criteria_grade_value = 6;
+            $criterion = new completion_criteria_grade();
+            $criterion->update_config($data);
+        }
+    }
+
+    protected function grade_assing() {
+        foreach ($this->courses as $course) {
+            $completion = $this->completions_info[$course->id];
+            foreach ($this->students as $student) {
+                $student_completion = $completion->get_completion($student->id, 6); //6 = COMPLETION_CRITERIA_TYPE_GRADE
+                var_dump($student_completion);exit;
+            }
+        }
+    }
 }
