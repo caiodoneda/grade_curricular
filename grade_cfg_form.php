@@ -69,13 +69,15 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
             $mform->disabledIf('studentcohortid', 'inscricoesactivityid', 'neq', 0);
             $mform->setDefault('inscricoesactivityid', $pre_data->inscricoesactivityid);
             $mform->addHelpButton('inscricoesactivityid', 'inscricoesactivityid', 'local_grade_curricular');
+            
+            $mform->addElement('html', html_writer::tag('label', 'ou', array('style'=>'margin-top:15px; margin-left:200px')));
         } else {
             $mform->addElement('hidden', 'inscricoesactivityid', 0);
+            $mform->setType('inscricoesactivityid', PARAM_INT);
         }
 
-        $mform->closeHeaderBefore('students_selection');
+        $mform->closeHeaderBefore('tutors_notes');
 
-        $mform->addElement('html', html_writer::tag('label', 'ou', array('style'=>'margin-top:15px; margin-left:200px')));
 
         $cohorts_opt[0] = get_string('no_cohort', 'local_grade_curricular');
         $cohorts_opt += local_grade_curricular::get_cohorts($context);
