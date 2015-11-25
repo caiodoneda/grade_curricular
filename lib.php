@@ -7,7 +7,7 @@ define('GC_MANDATORY', 1);
 define('GC_OPTIONAL', 2);
 define('GC_TCC', 3);
 
-function local_grade_curricular_extends_settings_navigation(navigation_node $navigation) {
+function local_grade_curricular_extend_settings_navigation(navigation_node $navigation) {
     global $PAGE;
 
     if (is_a($PAGE->context, 'context_coursecat') && has_capability('local/grade_curricular:view', $PAGE->context)) {
