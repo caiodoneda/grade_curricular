@@ -139,6 +139,46 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
+    //Function used by progress report.
+    public static function get_students_progress($grade, $str_groupids, $days_before, $studentsorderby) {
+        global $DB, $CFG;
+
+        $roleids = explode(',', $CFG->gradebookroles);
+        list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+
+        $timebefore = strtotime('-' . $days_before . ' days');
+        $params['contextlevel'] = CONTEXT_COURSE;
+        $params['gradeid'] = $grade->id;
+        $params['timebefore'] = $timebefore;
+        $params['ignore'] = GC_IGNORE;
+
+        $order = $studentsorderby == 'lastaccess' ? 'last_access ASC' : 'fullname';
+        $sql = "SELECT uj.id, uj.fullname, uj.str_courseids,
+                       COUNT(*) as count_actions,
+                       SUM(CASE WHEN l.time >= :timebefore THEN 1 ELSE 0 END) AS recent_actions,
+                       MIN(l.time) as first_access,
+                       MAX(l.time) as last_access
+                  FROM {grade_curricular} gc
+                  JOIN {grade_curricular_courses} gcc
+                    ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
+                  JOIN (SELECT u.id, CONCAT(u.firstname, ' ', u.lastname) as fullname,
+                               GROUP_CONCAT(DISTINCT c.id SEPARATOR ',') as str_courseids
+                          FROM {groups} g
+                          JOIN {groups_members} gm ON (gm.groupid = g.id)
+                          JOIN {course} c ON (c.id = g.courseid)
+                          JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
+                          JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid {$in_sql})
+                          JOIN {user} u ON (u.id = ra.userid)
+                         WHERE g.id IN ({$str_groupids})
+                         GROUP BY u.id
+                       ) uj
+             LEFT JOIN {log} l ON (l.course = gcc.courseid AND l.userid = uj.id)
+                 WHERE gc.id = :gradeid
+              GROUP BY uj.id
+              ORDER BY {$order}";
+        return $DB->get_records_sql($sql, $params);
+    }
+
     public static function get_students_groups($gradeid, $search = '', $studentsorderby = 'name') {
         global $DB, $CFG;
 
@@ -317,6 +357,28 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
+    public static function get_grade_courses($gradeid, $only_active=false) {
+        global $DB;
+
+        $params = array('gradecurricularid'=>$gradeid);
+
+        $where = '';
+        if ($only_active) {
+            $where = 'AND gcc.type != :ignore';
+            $params['ignore'] = GC_IGNORE;
+        }
+
+        $sql = "SELECT c.id, c.shortname, c.fullname,
+                       gcc.type, gcc.workload, gcc.inscribestartdate, gcc.inscribeenddate, gcc.coursedependencyid
+                  FROM {grade_curricular_courses} gcc
+                  JOIN {course} c ON (c.id = gcc.courseid)
+                 WHERE gcc.gradecurricularid = :gradecurricularid
+                   {$where}
+              ORDER BY c.sortorder";
+        
+        return $DB->get_records_sql($sql, $params);
+    }
+
     // retorna os nomes dos grupos dos cursos da grade curricular aos quais o usuário tem acesso
     // juntamente com uma lista de ids dos grupos com cada nome
     public static function get_groups($grade, $userid) {
@@ -419,7 +481,7 @@ class local_grade_curricular {
 
     public static function get_approved_students($grade_curricular, $students = array()) {
         $courses = self::get_courses($grade_curricular->id, true);
-        
+
         $approved_students = self::verify_approved_students($grade_curricular, $courses, $students);
 
         return $approved_students;
@@ -447,7 +509,7 @@ class local_grade_curricular {
                             if ($course->workload > 0) {
                                 $student_courses[$courseid] = $course->fullname;
                             }
-                            
+
                             $count_optative++;
                         }
                     }
@@ -465,7 +527,7 @@ class local_grade_curricular {
             if ($approved && ($count_optative >= $grade_curricular->minoptionalcourses)) {
                 $user->courses = $student_courses;
                 $approved_students[$userid] = $user;
-            } 
+            }
         }
 
         return $approved_students;
@@ -584,7 +646,7 @@ class local_grade_curricular {
             require_capability('local/grade_curricular:configure', $context);
 
             $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
-            
+
             //check if the inscricoesactivityid and studentcohortid are set, otherwise, save 0.
             $inscricoesactivityid = optional_param('inscricoesactivityid', -1 ,PARAM_INT);
             $studentcohortid = optional_param('studentcohortid', -1 ,PARAM_INT);
@@ -595,7 +657,7 @@ class local_grade_curricular {
             if ($studentcohortid == -1) {
                 $formdata->studentcohortid = 0;
             }
-        
+
             $record = new stdclass();
             $record->contextid = $contextid;
             $record->inscricoesactivityid = $formdata->inscricoesactivityid;
