@@ -567,15 +567,15 @@ class local_grade_curricular {
                     print_error($e);
                 }
             } else {
-              try {
-                  $record->inscricoesactivityid = 0;
-                  $record->tutorroleid = 0;
-                  $record->studentcohortid = 0;
-                  $record->notecourseid = 0;
-                  $DB->insert_record('grade_curricular', $record);
-              } catch (Exception  $e) {
-                  print_error($e);
-              }
+                try {
+                    $record->inscricoesactivityid = 0;
+                    $record->tutorroleid = 0;
+                    $record->studentcohortid = 0;
+                    $record->notecourseid = 0;
+                    $DB->insert_record('grade_curricular', $record);
+                } catch (Exception  $e) {
+                    print_error($e);
+                }
             }
 
             $types = optional_param_array('type', array(), PARAM_INT);

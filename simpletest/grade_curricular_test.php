@@ -58,6 +58,8 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function create_courses_completions($courses) {
+        global $DB;
+
         foreach ($courses as $course) {
             //Creating and enabling new completion for each course.
             $this->completions_info[$course->id] = new completion_info($course);
@@ -114,14 +116,14 @@ class grade_curricular_test extends advanced_testcase {
         $record->timemodified = time();
         
         for ($i = 1; $i <= $optative_amount; $i++) {
-            $record->courseid = $courses[$i]->id;
+            $record->courseid = array_pop($courses)->id;
             $record->type = 2;
             $record->workload = 1;
             $DB->insert_record('grade_curricular_courses', $record);
         }
 
         for ($i = 1; $i <= $mandatory_amount; $i++) {
-            $record->courseid = $courses[$i]->id;
+            $record->courseid = array_pop($courses)->id;
             $record->type = 1;
             $record->workload = 1;
             $DB->insert_record('grade_curricular_courses', $record);
@@ -132,40 +134,39 @@ class grade_curricular_test extends advanced_testcase {
 
     public function test_get_courses() {
         $this->resetAfterTest(true);
-        $this->create_courses(10);
-        $this->associate_courses_to_grade_curricular($this->courses, 5, 5);
-        $this->assertEquals(10, count($this->grade_curricular_courses));
+        $this->create_courses($amount = 10);
+        $this->associate_courses_to_grade_curricular($this->courses, $optative = 5, $mandatory = 5);
+        
+        $courses = local_grade_curricular::get_courses($this->grade_curricular->id);
+        
+        $this->assertTrue(is_array($courses));
+
+        $ids = array();
+        foreach ($courses as $key => $course) {
+            $ids[] = $course->id;
+        }
+
+        $testids = array();
+        foreach ($this->grade_curricular_courses as $key => $course) {
+            $testids[] = $course->courseid;
+        }
+
+        $this->assertEquals($ids, $testids);
     }
 
-    // public function test_is_grade_curricular_created() {
-    //     global $DB;
+    public function test_get_completions_info() {
+        $this->resetAfterTest(true);
+        $this->create_courses($amount = 2);
+        $this->create_courses_completions($this->courses);
 
-    //     $this->resetAfterTest(true);
-    //     $this->assertTrue($DB->record_exists('grade_curricular', array('id'=>$this->grade_curricular->id)));    
-    // }
+        foreach ($this->completions_info as $key => $ci) {
+            unset($ci->criterion);
+        }
 
-    // public function test_courses_are_associated() {
-    //     global $DB;
-
-    //     $this->resetAfterTest(true);
-    //     foreach ($this->courses as $key => $course) {
-    //         $this->assertTrue($DB->record_exists('grade_curricular_courses', 
-    //                           array('gradecurricularid'=>$this->grade_curricular->id, 
-    //                                 'courseid'=>$course->id)));     
-    //     }
-    // }
-
-    // public function test_check_for_completions() {
-    //     $this->resetAfterTest(true);
-
-    //     foreach ($this->courses as $key => $course) {
-    //         $completion = new completion_info($course);
-    //         foreach ($this->students as $key => $student) {
-    //             $student_completion = $completion->get_completion($student->id, 1); //1 = COMPLETION_CRITERIA_TYPE_SELF
-    //             $this->assertTrue($student_completion->is_complete());      
-    //         }
-    //     }
-    // }
-
-
+        $completions = local_grade_curricular::get_completions_info($this->courses);
+        
+        $this->assertTrue(is_array($completions));
+        $this->assertContainsOnlyInstancesOf('completion_info', $completions);
+        $this->assertEquals(array_values($this->completions_info), array_values($completions));
+    }
 }
