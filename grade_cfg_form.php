@@ -59,7 +59,8 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
         
         //Seleção de estudantes
         $mform->addElement('header', 'students_selection', get_string('students_selection', 'local_grade_curricular'));
-        
+        $mform->setExpanded('students_selection', false);
+
         if (isset($plugins['inscricoes'])) {
             $activities_opt[0] = get_string('no_activity', 'local_grade_curricular');
             $activities_opt += local_grade_curricular::get_potential_activities($context, $grade->id);
@@ -108,6 +109,7 @@ class local_grade_curricular_grade_cfg_form extends moodleform {
 
         //Anotações de tutores sobre estudantes
         $mform->addElement('header', 'tutors_notes', get_string('tutors_notes', 'local_grade_curricular'));
+        $mform->setExpanded('tutors_notes', false);
         $mform->addElement('select', 'notecourseid', get_string('notecourse', 'local_grade_curricular'), $courses_opt);
         $mform->setType('notecourseid', PARAM_INT);
         $mform->setDefault('notecourseid', $pre_data->notecourseid);
