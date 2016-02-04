@@ -495,8 +495,8 @@ class local_grade_curricular {
         if (empty($students)) {
             $students = self::get_students($grade_curricular->id);
         }
-
-        foreach($students AS $userid=>$user) {
+        
+        foreach($students AS $user) {
             $count_optative = 0;
             $approved = true;
             $student_courses = array();
@@ -505,7 +505,7 @@ class local_grade_curricular {
                 if ($course->type == GC_OPTIONAL) {
                     $context = context_course::instance($courseid);
                     if (is_enrolled($context, $user)) {
-                        if ($completions_info[$courseid]->is_course_complete($userid)){
+                        if ($completions_info[$courseid]->is_course_complete($user->id)){
                             if ($course->workload > 0) {
                                 $student_courses[$courseid] = $course->fullname;
                             }
@@ -514,7 +514,7 @@ class local_grade_curricular {
                         }
                     }
                 } elseif ($course->type == GC_MANDATORY) {
-                    if ($completions_info[$courseid]->is_course_complete($userid)){
+                    if ($completions_info[$courseid]->is_course_complete($user->id)){
                         if ($course->workload > 0) {
                             $student_courses[$courseid] = $course->fullname;
                         }
@@ -526,7 +526,7 @@ class local_grade_curricular {
 
             if ($approved && ($count_optative >= $grade_curricular->minoptionalcourses)) {
                 $user->courses = $student_courses;
-                $approved_students[$userid] = $user;
+                $approved_students[$user->id] = $user;
             }
         }
 

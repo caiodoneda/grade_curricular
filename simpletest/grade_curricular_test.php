@@ -17,29 +17,24 @@ require_once($CFG->dirroot . '/completion/criteria/completion_criteria_self.php'
 
 /** This class contains the test cases for the functions in grade_curricular.php. */
 class grade_curricular_test extends advanced_testcase {
-    
-	protected $grade_curricular;
-	protected $grade_curricular_courses;
-	protected $students;
-	protected $category;
-	protected $courses;
-	protected $completions_info;
+
+    protected $grade_curricular;
+    protected $grade_curricular_courses;
+    protected $students;
+    protected $category;
+    protected $courses;
+    protected $completions_info;
 
     public function setUp() {
-    	global $DB, $CFG;
+        $this->category = $this->getDataGenerator()->create_category();
+        $this->completions_info = array();
 
-        //enabling course completion globally
-        $CFG->enablecompletion = 1;
-
-    	$this->category = $this->getDataGenerator()->create_category();
-    	$this->completions_info = array();
-                
         $this->grade_curricular = $this->create_fake_grade_curricular();
     }
 
     protected function create_courses($amount) {
         for ($i = 1; $i <= $amount; $i++) {
-            $this->courses[$i] = $this->getDataGenerator()->create_course(array('category' => $this->category->id));
+            $this->courses[$i] = $this->getDataGenerator()->create_course(array('category' => $this->category->id, 'enablecompletion' => 1));
         }
     }
 
@@ -58,30 +53,47 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function create_courses_completions($courses) {
-        global $DB;
+        global $CFG;
+
+        //enabling course completion globally
+        $CFG->enablecompletion = 1;
 
         foreach ($courses as $course) {
             //Creating and enabling new completion for each course.
             $this->completions_info[$course->id] = new completion_info($course);
-            $course->enablecompletion = 1;
-            $DB->update_record('course', $course);
 
-            $data = new stdClass();
-            $data->criteria_self = 1; //Just setting any value to not be empty. The class completion_criteria will vaerify this value.
-            $data->id = $course->id;
+            $criteriadata = new stdClass();
+            $criteriadata->id = $course->id;
+            $criteriadata->criteria_activity = array();
+
+            // Self completion.
+            $criteriadata->criteria_self = COMPLETION_CRITERIA_TYPE_SELF;
             $criterion = new completion_criteria_self();
-            $criterion->update_config($data);
-            $this->completions_info[$course->id]->criterion = $criterion;//maybe we don't need this.
+            $criterion->update_config($criteriadata);
+
+            // Handle overall aggregation.
+            $aggdata = array(
+                'course'        => $course->id,
+                'criteriatype'  => null
+            );
+
+            $aggregation = new completion_aggregation($aggdata);
+            $aggregation->setMethod(COMPLETION_AGGREGATION_ALL);
+            $aggregation->save();
         }
     }
 
-    protected function complete_courses($courses = array(), $students = array()) {     
-        foreach ($courses as $course) {
-            foreach ($students as $student) {
-                $student_completion = $this->completions_info[$course->id]->get_completion($student->id, 1); //1 = COMPLETION_CRITERIA_TYPE_SELF
-                $student_completion->mark_complete();
-            }
-        }
+    protected function complete_course($course, $student) {
+        global $DB;
+
+        $this->setUser($student);
+
+        core_completion_external::mark_course_self_completed($course->id);
+
+        $course_completion = $DB->get_record('course_completions', array('userid'=>$student->id, 'course'=>$course->id));
+        $course_completion->timecompleted = time();
+        $DB->update_record('course_completions', $course_completion);
+
     }
 
     protected function create_fake_grade_curricular() {
@@ -92,12 +104,12 @@ class grade_curricular_test extends advanced_testcase {
         $record = new stdClass();
         $record->contextid = $context->id;
         $record->minoptionalcourses = 2;
-        $record->maxoptionalcourses = 5; 
-        $record->optionalatonetime = 0; 
-        $record->inscricoesactivityid = 5; 
+        $record->maxoptionalcourses = 5;
+        $record->optionalatonetime = 0;
+        $record->inscricoesactivityid = 0;
         $record->tutorroleid = 1;
-        $record->studentcohortid = 0; 
-        $record->notecourseid = 0; 
+        $record->studentcohortid = 0;
+        $record->notecourseid = 0;
         $record->timemodified = time();
 
         $gradeid = $DB->insert_record('grade_curricular', $record);
@@ -114,7 +126,7 @@ class grade_curricular_test extends advanced_testcase {
         $record->inscribeenddate = time();
         $record->coursedependencyid = 0;
         $record->timemodified = time();
-        
+
         for ($i = 1; $i <= $optative_amount; $i++) {
             $record->courseid = array_pop($courses)->id;
             $record->type = 2;
@@ -136,9 +148,9 @@ class grade_curricular_test extends advanced_testcase {
         $this->resetAfterTest(true);
         $this->create_courses($amount = 10);
         $this->associate_courses_to_grade_curricular($this->courses, $optative = 5, $mandatory = 5);
-        
+
         $courses = local_grade_curricular::get_courses($this->grade_curricular->id);
-        
+
         $this->assertTrue(is_array($courses));
 
         $ids = array();
@@ -164,9 +176,62 @@ class grade_curricular_test extends advanced_testcase {
         }
 
         $completions = local_grade_curricular::get_completions_info($this->courses);
-        
+
         $this->assertTrue(is_array($completions));
         $this->assertContainsOnlyInstancesOf('completion_info', $completions);
         $this->assertEquals(array_values($this->completions_info), array_values($completions));
+    }
+
+    //A grande curricular de testes exige um mínimo de dois cursos optativos, e que todos os obrigatórios sejam completados.
+    public function test_get_approved_students() {
+        $this->resetAfterTest(true);
+        $this->create_courses($amount = 6);
+        $this->associate_courses_to_grade_curricular($this->courses, $optative = 3, $mandatory = 3);
+        $this->create_students(10);
+        $this->enrol_students($this->students, $this->courses);
+        $this->create_courses_completions($this->courses);
+
+        $courses = local_grade_curricular::get_courses($this->grade_curricular->id);
+
+        //5 estudantes completaram todos os cursos.
+        for ($i = 1; $i <= 5; $i++) {
+            foreach ($courses as $course) {
+                $this->complete_course($course, $this->students[$i]);
+            }
+        }
+
+        //2 estudantes foram reprovados por não completarem 1 obrigatório.
+        for ($i = 6; $i <= 7; $i++) {
+            $count = 0;
+            foreach ($courses as $key => $course) {
+                if ($course->type == 1) {
+                    if ($count >= 1) {
+                        $this->complete_course($course, $this->students[$i]);
+                    }
+
+                    $count += 1;
+                } else {
+                    $this->complete_course($course, $this->students[$i]);
+                }
+            }
+        }
+        //3 estudantes foram reprovados por não atingirem o critério mínimo de optativos.
+        for ($i = 8; $i <= 10; $i++) {
+            $count = 0;
+            foreach ($courses as $key => $course) {
+                if ($course->type == 2) {
+                    if ($count >= 2) {
+                        $this->complete_course($course, $this->students[$i]);
+                    }
+
+                    $count += 1;
+                } else {
+                    $this->complete_course($course, $this->students[$i]);
+                }
+            }
+        }
+
+        $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
+        $this->assertEquals(5, count($approved_students));
     }
 }
