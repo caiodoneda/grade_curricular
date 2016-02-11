@@ -495,7 +495,7 @@ class local_grade_curricular {
         if (empty($students)) {
             $students = self::get_students($grade_curricular->id);
         }
-        
+
         foreach($students AS $user) {
             $count_optative = 0;
             $approved = true;

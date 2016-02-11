@@ -14,6 +14,7 @@ global $CFG;
 require_once($CFG->dirroot . '/local/grade_curricular/classes/grade_curricular.php'); // Include the code to test
 require_once($CFG->dirroot . '/lib/completionlib.php');
 require_once($CFG->dirroot . '/completion/criteria/completion_criteria_self.php');
+require_once($CFG->libdir . '/cronlib.php');
 
 /** This class contains the test cases for the functions in grade_curricular.php. */
 class grade_curricular_test extends advanced_testcase {
@@ -84,16 +85,9 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function complete_course($course, $student) {
-        global $DB;
-
         $this->setUser($student);
 
         core_completion_external::mark_course_self_completed($course->id);
-
-        $course_completion = $DB->get_record('course_completions', array('userid'=>$student->id, 'course'=>$course->id));
-        $course_completion->timecompleted = time();
-        $DB->update_record('course_completions', $course_completion);
-
     }
 
     protected function create_fake_grade_curricular() {
@@ -230,6 +224,8 @@ class grade_curricular_test extends advanced_testcase {
                 }
             }
         }
+
+        cron_run();
 
         $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
         $this->assertEquals(5, count($approved_students));
