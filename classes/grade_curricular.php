@@ -70,13 +70,13 @@ class local_grade_curricular {
             list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
             $from = "FROM {grade_curricular} gc
-                     JOIN {grade_curricular_courses} gcc 
+                     JOIN {grade_curricular_courses} gcc
                        ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
-                     JOIN {inscricoes_activities} ia 
+                     JOIN {inscricoes_activities} ia
                        ON (ia.id = gc.inscricoesactivityid)
-                     JOIN {inscricoes_cohorts} ic 
+                     JOIN {inscricoes_cohorts} ic
                        ON (ic.activityid = ia.id AND ic.roleid {$in_sql})
-                     JOIN {cohort_members} chm 
+                     JOIN {cohort_members} chm
                        ON (chm.cohortid = ic.cohortid)
                      JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
@@ -84,10 +84,10 @@ class local_grade_curricular {
             $params['ignore'] = GC_IGNORE;
         } else if($grade->studentcohortid > 0) {
             $from = "FROM {grade_curricular} gc
-                     JOIN {grade_curricular_courses} gcc 
+                     JOIN {grade_curricular_courses} gcc
                        ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
                      JOIN {cohort_members} chm
-                     JOIN {user} u 
+                     JOIN {user} u
                        ON (u.id = chm.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid
                         AND chm.cohortid = :cohortid";
@@ -375,7 +375,7 @@ class local_grade_curricular {
                  WHERE gcc.gradecurricularid = :gradecurricularid
                    {$where}
               ORDER BY c.sortorder";
-        
+
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -639,7 +639,7 @@ class local_grade_curricular {
     }
 
     public static function save_cfg_grade($contextid, $formdata) {
-        global $DB, $SESSION;
+        global $DB;
 
         if (confirm_sesskey()) {
             $context = context::instance_by_id($contextid, MUST_EXIST);

@@ -111,6 +111,12 @@ class grade_curricular_test extends advanced_testcase {
         return $DB->get_record('grade_curricular', array('id'=>$gradeid));
     }
 
+    protected function update_grade_curricular() {
+        global $DB;
+
+        return $this->grade_curricular = $DB->get_record('grade_curricular', array('id'=>$this->grade_curricular->id));
+    }
+
     protected function associate_courses_to_grade_curricular($courses, $optative_amount, $mandatory_amount) {
         global $DB;
 
@@ -229,5 +235,102 @@ class grade_curricular_test extends advanced_testcase {
 
         $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
         $this->assertEquals(5, count($approved_students));
+    }
+
+    public function test_save_cfg_grade() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();//TODO Create a specific user
+
+        $context = context_coursecat::instance($this->category->id);
+
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->grade_curricular->id;
+        $_POST['inscricoesactivityid'] = 4;
+        $_POST['studentcohortid'] = 0;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
+
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+
+        $grade_curricular = $this->update_grade_curricular();
+
+        $this->assertEquals($grade_curricular->inscricoesactivityid, 4);
+        $this->assertEquals($grade_curricular->studentcohortid, 0);
+        $this->assertEquals($grade_curricular->tutorroleid, 2);
+        $this->assertEquals($grade_curricular->notecourseid, 15);
+    }
+
+    public function test_save_cfg_grade_missing_inscricoesactivityid() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();//TODO Create a specific user
+
+        $context = context_coursecat::instance($this->category->id);
+
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->grade_curricular->id;
+        $_POST['studentcohortid'] = 0;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
+
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+
+        $grade_curricular = $this->update_grade_curricular();
+
+        $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
+        $this->assertEquals($grade_curricular->studentcohortid, 0);
+        $this->assertEquals($grade_curricular->tutorroleid, 2);
+        $this->assertEquals($grade_curricular->notecourseid, 15);
+    }
+
+    public function test_save_cfg_grade_missing_studentcohortid() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();//TODO Create a specific user
+
+        $context = context_coursecat::instance($this->category->id);
+
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->grade_curricular->id;
+        $_POST['inscricoesactivityid'] = 4;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
+
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+
+        $grade_curricular = $this->update_grade_curricular();
+
+        $this->assertEquals($grade_curricular->inscricoesactivityid, 4);
+        $this->assertEquals($grade_curricular->studentcohortid, 0);
+        $this->assertEquals($grade_curricular->tutorroleid, 2);
+        $this->assertEquals($grade_curricular->notecourseid, 15);
+    }
+
+    public function test_save_cfg_grade_missint_inscricoesactivityid_and_studentcohortid() {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();//TODO Create a specific user
+
+        $context = context_coursecat::instance($this->category->id);
+
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->grade_curricular->id;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
+
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+
+        $grade_curricular = $this->update_grade_curricular();
+
+        $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
+        $this->assertEquals($grade_curricular->studentcohortid, 0);
+        $this->assertEquals($grade_curricular->tutorroleid, 2);
+        $this->assertEquals($grade_curricular->notecourseid, 15);
+    }
+
+    public function test_save_modules() {
+        $this->resetAfterTest(true);
+        $this->assertTrue(false);
     }
 }
