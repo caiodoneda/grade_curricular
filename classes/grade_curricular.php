@@ -591,8 +591,8 @@ class local_grade_curricular {
             $endyears = optional_param_array('endyears', array(), PARAM_INT);
 
             $courses = self::get_potential_courses($category->path, $gradecurricularid);
-
             $courseids = array();
+
             foreach($courses as $c) {
                 if(isset($types[$c->id])) {
                     $grade_course = new stdclass();
@@ -620,6 +620,7 @@ class local_grade_curricular {
                         $grade_course->id = $c->gradecourseid;
                         $DB->update_record('grade_curricular_courses', $grade_course);
                     }
+
                     $courseids[] = $c->id;
                 }
             }

@@ -144,6 +144,12 @@ class grade_curricular_test extends advanced_testcase {
         $this->grade_curricular_courses = $DB->get_records('grade_curricular_courses', array('gradecurricularid'=>$this->grade_curricular->id));
     }
 
+    protected function update_grade_curricular_courses() {
+        global $DB;
+
+        return $this->grade_curricular_courses = $DB->get_records('grade_curricular_courses', array('gradecurricularid'=>$this->grade_curricular->id));
+    }
+
     public function test_get_courses() {
         $this->resetAfterTest(true);
         $this->create_courses($amount = 10);
@@ -330,7 +336,72 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     public function test_save_modules() {
+        global $DB;
+
         $this->resetAfterTest(true);
-        $this->assertTrue(false);
+        $this->setAdminUser();//TODO Create a specific user
+        $this->create_courses($amount = 6);
+        $this->associate_courses_to_grade_curricular($this->courses, $optative = 3, $mandatory = 3);
+
+        $context = context_coursecat::instance($this->category->id);
+
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->grade_curricular->id;
+        $_POST['minoptionalcourses'] = 7;
+        $_POST['maxoptionalcourses'] = 15;
+        $_POST['optionalatonetime'] = 5;
+
+        $_POST['sesskey'] = sesskey();
+
+        $_POST['type'] = array();
+        $_POST['workload'] = array();
+        $_POST['dependencies'] = array();
+        $_POST['startdays'] = array();
+        $_POST['startmonths'] = array();
+        $_POST['startyears'] = array();
+        $_POST['enddays'] = array();
+        $_POST['endmonths'] = array();
+        $_POST['endyears'] = array();
+
+        foreach ($this->grade_curricular_courses as $course) {
+            $_POST['type'][$course->courseid] = 1;
+            $_POST['workload'][$course->courseid] = 100;
+            $_POST['dependencies'][$course->courseid] = 0;
+            $_POST['startdays'][$course->courseid] = 7;
+            $_POST['startmonths'][$course->courseid] = 1;
+            $_POST['startyears'][$course->courseid] = 2016;
+            $_POST['enddays'][$course->courseid] = 25;
+            $_POST['endmonths'][$course->courseid] = 12;
+            $_POST['endyears'][$course->courseid] = 2016;
+        }
+
+        local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST);
+
+        $grade_curricular = $this->update_grade_curricular();
+
+        $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
+        $this->assertEquals($grade_curricular->minoptionalcourses, 7);
+        $this->assertEquals($grade_curricular->maxoptionalcourses, 15);
+        $this->assertEquals($grade_curricular->optionalatonetime, 5);
+
+        $grade_curricular_courses = $this->update_grade_curricular_courses();
+
+        foreach ($grade_curricular_courses as $course) {
+            $this->assertEquals($course->type, 1);
+            $this->assertEquals($course->workload, 100);
+            $this->assertEquals($course->inscribestartdate, make_timestamp(2016, 1, 7));
+            $this->assertEquals($course->inscribeenddate, make_timestamp(2016, 12, 25));
+        }
+
+        $random_course = reset($grade_curricular_courses); //get the first element of this array
+        $random_course_key = key($grade_curricular_courses);
+
+        $DB->delete_records('course', array('id'=>$random_course->courseid)); //delete this course.
+
+        local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST); //Repeat the proccess to see if the course is erased from grade_curricular_courses table
+
+        $grade_curricular_courses = $this->update_grade_curricular_courses();
+
+        $this->assertArrayNotHasKey($random_course_key, $grade_curricular_courses);
     }
 }
