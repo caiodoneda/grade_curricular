@@ -155,9 +155,9 @@ class local_grade_curricular {
         $order = $studentsorderby == 'lastaccess' ? 'last_access ASC' : 'fullname';
         $sql = "SELECT uj.id, uj.fullname, uj.str_courseids,
                        COUNT(*) as count_actions,
-                       SUM(CASE WHEN l.time >= :timebefore THEN 1 ELSE 0 END) AS recent_actions,
-                       MIN(l.time) as first_access,
-                       MAX(l.time) as last_access
+                       SUM(CASE WHEN l.timecreated >= :timebefore THEN 1 ELSE 0 END) AS recent_actions,
+                       MIN(l.timecreated) as first_access,
+                       MAX(l.timecreated) as last_access
                   FROM {grade_curricular} gc
                   JOIN {grade_curricular_courses} gcc
                     ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
@@ -172,7 +172,7 @@ class local_grade_curricular {
                          WHERE g.id IN ({$str_groupids})
                          GROUP BY u.id
                        ) uj
-             LEFT JOIN {log} l ON (l.course = gcc.courseid AND l.userid = uj.id)
+             LEFT JOIN {logstore_standard_log} l ON (l.courseid = gcc.courseid AND l.userid = uj.id)
                  WHERE gc.id = :gradeid
               GROUP BY uj.id
               ORDER BY {$order}";
