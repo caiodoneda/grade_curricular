@@ -15,6 +15,7 @@ require_once($CFG->dirroot . '/local/grade_curricular/classes/grade_curricular.p
 require_once($CFG->dirroot . '/lib/completionlib.php');
 require_once($CFG->dirroot . '/completion/criteria/completion_criteria_self.php');
 require_once($CFG->libdir . '/cronlib.php');
+require_once($CFG->libdir . '/moodlelib.php');
 require_once($CFG->dirroot.'/completion/cron.php');
 
 /** This class contains the test cases for the functions in grade_curricular.php. */
@@ -93,6 +94,12 @@ class grade_curricular_test extends advanced_testcase {
         }
     }
 
+    protected function delete_courses_completions() {
+        foreach ($this->completions_info as $completion) {
+            $completion->delete_course_completion_data();
+        }
+    }
+
     protected function complete_course($course, $student) {
         $this->setUser($student);
 
@@ -168,6 +175,16 @@ class grade_curricular_test extends advanced_testcase {
         completion_cron_completions();
     }
 
+    protected function prepare_for_next_cron() {
+        global $DB;
+
+        $sql = "UPDATE {task_scheduled}
+                   SET lastruntime = ?, nextruntime = ?
+                 WHERE classname LIKE 'completion_regular_task' OR classname LIKE 'completion_daily_task' ";
+
+        $DB->execute($sql, array(null, time()));
+    }
+
 //    public function test_get_courses() {
 //        $this->resetAfterTest(true);
 //        $this->create_courses($amount = 10);
@@ -206,74 +223,35 @@ class grade_curricular_test extends advanced_testcase {
 //        $this->assertEquals(array_values($this->completions_info), array_values($completions));
 //    }
 
-    // public function test_get_approved_students() {
-    //     global $DB;
-
-    //     $this->resetAfterTest(true);
-    //     $this->create_courses($amount = 6);
-    //     $this->create_students(5);
-    //     $this->create_courses_completions($this->courses);
-    //     $this->enrol_students($this->students, $this->courses);
-
-    //     $opt_courses_amount = 3;
-    //     $man_courses_amount = 3;
-
-    //     $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
-        
-    //     $min_optative = 2;
-    
-    //     $DB->set_field('grade_curricular', 'minoptionalcourses', $min_optative, array('id'=>$this->grade_curricular->id));
-    //     $this->update_grade_curricular();
-    //     $this->complete_courses_with_variations($min_optative);
-    // }
-
-    // public function test_get_approved_students_var1() {
-    //     global $DB;
-
-    //     $this->resetAfterTest(true);
-    //     $this->create_courses($amount = 6);
-    //     $this->create_students(5);
-    //     $this->create_courses_completions($this->courses);
-    //     $this->enrol_students($this->students, $this->courses);
-
-    //     $opt_courses_amount = 3;
-    //     $man_courses_amount = 3;
-
-    //     $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
-        
-    //     $min_optative = 1;
-    
-    //     $DB->set_field('grade_curricular', 'minoptionalcourses', $min_optative, array('id'=>$this->grade_curricular->id));
-    //     $this->update_grade_curricular();
-    //     $this->complete_courses_with_variations($min_optative);
-    // }
-
-    public function test_get_approved_students_var2() {
+    public function test_get_approved_students_var() {
         global $DB;
 
         $this->resetAfterTest(true);
-        $this->create_courses($amount = 6);
-        $this->create_students(5);
-        $this->create_courses_completions($this->courses);
-        $this->enrol_students($this->students, $this->courses);
 
         $opt_courses_amount = [3, 2, 0];
         $man_courses_amount = [3, 2, 0];
 
         foreach ($man_courses_amount as $man_amount) {
             foreach ($opt_courses_amount as $opt_amount) {
+                $this->create_courses($opt_amount + $man_amount);
+                $this->create_students(5);
+                $this->create_courses_completions($this->courses);
+                $this->enrol_students($this->students, $this->courses);
                 $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
                 
-                $min_optative = 1;
-
-                $DB->set_field('grade_curricular', 'minoptionalcourses', $min_optative, array('id'=>$this->grade_curricular->id));
-                $this->update_grade_curricular();
-                $this->complete_courses_with_variations($min_optative);
+                $min_optative_variation = [1];
+                //$min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
+                foreach ($min_optative_variation as $min_opt_var) {
+                    $DB->set_field('grade_curricular', 'minoptionalcourses', $min_opt_var, array('id'=>$this->grade_curricular->id));
+                    $this->update_grade_curricular();
+                    $this->complete_courses_with_variations($min_opt_var);
+                    $this->delete_courses_completions();
+                }
             }
         }
     }
 
-    protected function complete_courses_with_variations($min_opt_var) {
+    protected function complete_courses_with_variations($min_opt_var) {                 
         $mandatory_courses = array();
         $optative_courses = array();
 
@@ -290,6 +268,7 @@ class grade_curricular_test extends advanced_testcase {
         
         $this->complete_courses($mandatory_courses, $optative_courses, $mandatory_courses_to_complete, $optative_courses_to_complete);
 
+        $this->prepare_for_next_cron();
         $this->cron_run();
                 
         $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
@@ -302,14 +281,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function complete_courses($mandatory_courses, $optative_courses, $man_courses_amount, $opt_courses_amount) {
-        global $DB;
-
-        $DB->delete_records('course_completion_crit_compl');
-
-        $sql = "UPDATE {course_completions}
-                   SET timecompleted = NULL";
-        $DB->execute($sql);
-
         if (!empty($mandatory_courses)) {
             for ($i = 1; $i <= $man_courses_amount; $i++) {
                 $course = array_pop($mandatory_courses);
