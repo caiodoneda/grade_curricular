@@ -29,6 +29,11 @@ class grade_curricular_test extends advanced_testcase {
     protected $completions_info;
 
     public function setUp() {
+        global $CFG;
+
+        // //enabling course completion globally
+        $CFG->enablecompletion = 1;
+
         $this->category = $this->getDataGenerator()->create_category();
         $this->completions_info = array();
 
@@ -66,9 +71,6 @@ class grade_curricular_test extends advanced_testcase {
     protected function create_courses_completions($courses) {
         global $CFG;
 
-        //enabling course completion globally
-        $CFG->enablecompletion = 1;
-
         foreach ($courses as $course) {
             //Creating and enabling new completion for each course.
             $this->completions_info[$course->id] = new completion_info($course);
@@ -100,7 +102,7 @@ class grade_curricular_test extends advanced_testcase {
         }
     }
 
-    protected function complete_course($course, $student) {
+    protected function complete_one_course($course, $student) {
         $this->setUser($student);
 
         core_completion_external::mark_course_self_completed($course->courseid);
@@ -122,7 +124,11 @@ class grade_curricular_test extends advanced_testcase {
         $record->notecourseid = 0;
         $record->timemodified = time();
 
-        $gradeid = $DB->insert_record('grade_curricular', $record);
+        try {
+            $gradeid = $DB->insert_record('grade_curricular', $record);
+        } catch (Exception $e) {
+            var_dump($e);
+        }
 
         return $DB->get_record('grade_curricular', array('id'=>$gradeid));
     }
@@ -136,7 +142,11 @@ class grade_curricular_test extends advanced_testcase {
     protected function associate_courses_to_grade_curricular($courses, $optative_amount, $mandatory_amount) {
         global $DB;
 
-        $DB->delete_records('grade_curricular_courses');//cleaning the table.
+        try {
+            $DB->delete_records('grade_curricular_courses');//cleaning the table.
+        } catch (Exception $e) {
+            var_dump($e);
+        }
 
         $record = new stdClass();
         $record->gradecurricularid = $this->grade_curricular->id;
@@ -149,14 +159,23 @@ class grade_curricular_test extends advanced_testcase {
             $record->courseid = array_pop($courses)->id;
             $record->type = 2;
             $record->workload = 1;
-            $DB->insert_record('grade_curricular_courses', $record);
+
+            try {
+                $DB->insert_record('grade_curricular_courses', $record);
+            } catch (Exception $e) {
+                var_dump($e);
+            }
         }
 
         for ($i = 1; $i <= $mandatory_amount; $i++) {
             $record->courseid = array_pop($courses)->id;
             $record->type = 1;
             $record->workload = 1;
-            $DB->insert_record('grade_curricular_courses', $record);
+            try {
+                $DB->insert_record('grade_curricular_courses', $record);
+            } catch (Exception $e) {
+                var_dump($e);   
+            }
         }
 
         $this->grade_curricular_courses = $DB->get_records('grade_curricular_courses', array('gradecurricularid'=>$this->grade_curricular->id));
@@ -169,10 +188,19 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function cron_run() {
-        purge_all_caches();
-        completion_cron_mark_started();
-        completion_cron_criteria();
-        completion_cron_completions();
+        try {
+            purge_all_caches();
+        } catch (Exception $e) {
+            var_dump($e);
+        }
+
+        try {
+            completion_cron_mark_started();
+            completion_cron_criteria();
+            completion_cron_completions();
+        } catch (Exception $e) {
+            var_dump($e);
+        }
     }
 
     protected function prepare_for_next_cron() {
@@ -181,8 +209,11 @@ class grade_curricular_test extends advanced_testcase {
         $sql = "UPDATE {task_scheduled}
                    SET lastruntime = ?, nextruntime = ?
                  WHERE classname LIKE 'completion_regular_task' OR classname LIKE 'completion_daily_task' ";
-
-        $DB->execute($sql, array(null, time()));
+        try {
+            $DB->execute($sql, array(null, -1));
+        } catch (Exception $e) {
+            var_dump($e);
+        }
     }
 
 //    public function test_get_courses() {
@@ -207,51 +238,90 @@ class grade_curricular_test extends advanced_testcase {
 //        $this->assertEquals($ids, $testids);
 //    }
 //
-//    public function test_get_completions_info() {
-//        $this->resetAfterTest(true);
-//        $this->create_courses($amount = 2);
-//        $this->create_courses_completions($this->courses);
-//
-//        foreach ($this->completions_info as $key => $ci) {
-//            unset($ci->criterion);
-//        }
-//
-//        $completions = local_grade_curricular::get_completions_info($this->courses);
-//
-//        $this->assertTrue(is_array($completions));
-//        $this->assertContainsOnlyInstancesOf('completion_info', $completions);
-//        $this->assertEquals(array_values($this->completions_info), array_values($completions));
-//    }
+   // public function test_get_completions_info() {
+   //     $this->resetAfterTest(true);
+   //     $this->create_courses($amount = 2);
+   //     $this->create_courses_completions($this->courses);
 
-    public function test_get_approved_students_var() {
-        global $DB;
+   //     foreach ($this->completions_info as $key => $ci) {
+   //         unset($ci->criterion);
+   //     }
 
+   //     $completions = local_grade_curricular::get_completions_info($this->courses);
+
+   //     $this->assertTrue(is_array($completions));
+   //     $this->assertContainsOnlyInstancesOf('completion_info', $completions);
+   //     $this->assertEquals(array_values($this->completions_info), array_values($completions));
+   // }
+
+    public function test_get_approved_students() {
         $this->resetAfterTest(true);
 
-        $opt_courses_amount = [3, 2, 0];
-        $man_courses_amount = [3, 2, 0];
+        $opt_courses_amount = 3;
+        $man_courses_amount = 3;
 
-        foreach ($man_courses_amount as $man_amount) {
-            foreach ($opt_courses_amount as $opt_amount) {
-                $this->create_courses($opt_amount + $man_amount);
-                $this->create_students(5);
-                $this->create_courses_completions($this->courses);
-                $this->enrol_students($this->students, $this->courses);
-                $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
-                
-                $min_optative_variation = [1];
-                //$min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
-                foreach ($min_optative_variation as $min_opt_var) {
-                    $DB->set_field('grade_curricular', 'minoptionalcourses', $min_opt_var, array('id'=>$this->grade_curricular->id));
-                    $this->update_grade_curricular();
-                    $this->complete_courses_with_variations($min_opt_var);
-                    $this->delete_courses_completions();
-                }
-            }
+        $this->create_courses($opt_courses_amount + $man_courses_amount);
+        $this->create_students(5);
+        $this->create_courses_completions($this->courses);
+        $this->enrol_students($this->students, $this->courses);
+        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+        $min_optative = 3;
+                     
+        $this->set_grade_curricular_minoptionalcourses($min_optative);
+        $this->update_grade_curricular();
+        $this->check_completions($min_optative);
+    }
+
+    public function test_get_approved_students2() {
+        $this->resetAfterTest(true);
+
+        $opt_courses_amount = 3;
+        $man_courses_amount = 3;
+
+        $this->create_courses($opt_courses_amount + $man_courses_amount);
+        $this->create_students(5);
+        $this->create_courses_completions($this->courses);
+        $this->enrol_students($this->students, $this->courses);
+        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+        $min_optative = 1;
+                     
+        $this->set_grade_curricular_minoptionalcourses($min_optative);
+        $this->update_grade_curricular();
+        $this->check_completions($min_optative);
+    }
+
+    public function test_get_approved_students3() {
+        $this->resetAfterTest(true);
+
+        $opt_courses_amount = 3;
+        $man_courses_amount = 3;
+
+        $this->create_courses($opt_courses_amount + $man_courses_amount);
+        $this->create_students(5);
+        $this->create_courses_completions($this->courses);
+        $this->enrol_students($this->students, $this->courses);
+        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+        $min_optative = 0;
+                     
+        $this->set_grade_curricular_minoptionalcourses($min_optative);
+        $this->update_grade_curricular();
+        $this->check_completions($min_optative);
+    }
+
+    protected function set_grade_curricular_minoptionalcourses($min_optative) {
+        global $DB;
+
+        try {
+            $DB->set_field('grade_curricular', 'minoptionalcourses', $min_optative, array('id'=>$this->grade_curricular->id));
+        } catch (Exception $e) {
+            var_dump($e);
         }
     }
 
-    protected function complete_courses_with_variations($min_opt_var) {                 
+    protected function check_completions($min_optative) {
         $mandatory_courses = array();
         $optative_courses = array();
 
@@ -265,15 +335,16 @@ class grade_curricular_test extends advanced_testcase {
 
         $mandatory_courses_to_complete = count($mandatory_courses);
         $optative_courses_to_complete = count($optative_courses);
-        
+
         $this->complete_courses($mandatory_courses, $optative_courses, $mandatory_courses_to_complete, $optative_courses_to_complete);
 
+        sleep(3);
         $this->prepare_for_next_cron();
         $this->cron_run();
-                
-        $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
         
-        if (($mandatory_courses_to_complete == count($mandatory_courses)) && ($optative_courses_to_complete >= $min_opt_var)) {
+        $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
+
+        if (($mandatory_courses_to_complete == count($mandatory_courses)) && ($optative_courses_to_complete >= $min_optative)) {
             $this->assertEquals(5, count($approved_students));
         } else {
             $this->assertEmpty($approved_students);
@@ -285,7 +356,7 @@ class grade_curricular_test extends advanced_testcase {
             for ($i = 1; $i <= $man_courses_amount; $i++) {
                 $course = array_pop($mandatory_courses);
                 foreach ($this->students as $s) {
-                    $this->complete_course($course, $s);
+                    $this->complete_one_course($course, $s);
                 }
             }
         }
@@ -294,7 +365,7 @@ class grade_curricular_test extends advanced_testcase {
             for ($i = 1; $i <= $opt_courses_amount; $i++) {
                 $course = array_pop($optative_courses);
                 foreach ($this->students as $s) {
-                    $this->complete_course($course, $s);
+                    $this->complete_one_course($course, $s);
                 }
             }
         }

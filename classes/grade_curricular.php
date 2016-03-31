@@ -502,8 +502,9 @@ class local_grade_curricular {
             $student_courses = array();
 
             foreach($courses AS $courseid=>$course) {
+                $context = context_course::instance($courseid);
+                
                 if ($course->type == GC_OPTIONAL) {
-                    $context = context_course::instance($courseid);
                     if (is_enrolled($context, $user)) {
                         if ($completions_info[$courseid]->is_course_complete($user->id)){
                             if ($course->workload > 0) {
