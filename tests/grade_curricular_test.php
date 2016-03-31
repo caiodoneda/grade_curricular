@@ -254,61 +254,88 @@ class grade_curricular_test extends advanced_testcase {
    //     $this->assertEquals(array_values($this->completions_info), array_values($completions));
    // }
 
-    public function test_get_approved_students() {
+    // public function test_get_approved_students() {
+    //     $this->resetAfterTest(true);
+
+    //     $opt_courses_amount = 3;
+    //     $man_courses_amount = 3;
+
+    //     $this->create_courses($opt_courses_amount + $man_courses_amount);
+    //     $this->create_students(5);
+    //     $this->create_courses_completions($this->courses);
+    //     $this->enrol_students($this->students, $this->courses);
+    //     $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+    //     $min_optative = 3;
+                     
+    //     $this->set_grade_curricular_minoptionalcourses($min_optative);
+    //     $this->update_grade_curricular();
+    //     $this->check_completions($min_optative);
+    // }
+
+    // public function test_get_approved_students2() {
+    //     $this->resetAfterTest(true);
+
+    //     $opt_courses_amount = 3;
+    //     $man_courses_amount = 3;
+
+    //     $this->create_courses($opt_courses_amount + $man_courses_amount);
+    //     $this->create_students(5);
+    //     $this->create_courses_completions($this->courses);
+    //     $this->enrol_students($this->students, $this->courses);
+    //     $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+    //     $min_optative = 1;
+                     
+    //     $this->set_grade_curricular_minoptionalcourses($min_optative);
+    //     $this->update_grade_curricular();
+    //     $this->check_completions($min_optative);
+    // }
+
+    // public function test_get_approved_students3() {
+    //     $this->resetAfterTest(true);
+
+    //     $opt_courses_amount = 3;
+    //     $man_courses_amount = 3;
+
+    //     $this->create_courses($opt_courses_amount + $man_courses_amount);
+    //     $this->create_students(5);
+    //     $this->create_courses_completions($this->courses);
+    //     $this->enrol_students($this->students, $this->courses);
+    //     $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
+
+    //     $min_optative = 0;
+                     
+    //     $this->set_grade_curricular_minoptionalcourses($min_optative);
+    //     $this->update_grade_curricular();
+    //     $this->check_completions($min_optative);
+    // }
+
+      public function test_get_approved_students_var() {
+        global $DB;
+
         $this->resetAfterTest(true);
 
-        $opt_courses_amount = 3;
-        $man_courses_amount = 3;
+        $opt_courses_amount = [3, 2, 0];
+        $man_courses_amount = [3, 2, 0];
 
-        $this->create_courses($opt_courses_amount + $man_courses_amount);
-        $this->create_students(5);
-        $this->create_courses_completions($this->courses);
-        $this->enrol_students($this->students, $this->courses);
-        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
-
-        $min_optative = 3;
-                     
-        $this->set_grade_curricular_minoptionalcourses($min_optative);
-        $this->update_grade_curricular();
-        $this->check_completions($min_optative);
-    }
-
-    public function test_get_approved_students2() {
-        $this->resetAfterTest(true);
-
-        $opt_courses_amount = 3;
-        $man_courses_amount = 3;
-
-        $this->create_courses($opt_courses_amount + $man_courses_amount);
-        $this->create_students(5);
-        $this->create_courses_completions($this->courses);
-        $this->enrol_students($this->students, $this->courses);
-        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
-
-        $min_optative = 1;
-                     
-        $this->set_grade_curricular_minoptionalcourses($min_optative);
-        $this->update_grade_curricular();
-        $this->check_completions($min_optative);
-    }
-
-    public function test_get_approved_students3() {
-        $this->resetAfterTest(true);
-
-        $opt_courses_amount = 3;
-        $man_courses_amount = 3;
-
-        $this->create_courses($opt_courses_amount + $man_courses_amount);
-        $this->create_students(5);
-        $this->create_courses_completions($this->courses);
-        $this->enrol_students($this->students, $this->courses);
-        $this->associate_courses_to_grade_curricular($this->courses, $opt_courses_amount, $man_courses_amount);
-
-        $min_optative = 0;
-                     
-        $this->set_grade_curricular_minoptionalcourses($min_optative);
-        $this->update_grade_curricular();
-        $this->check_completions($min_optative);
+        foreach ($man_courses_amount as $man_amount) {
+            foreach ($opt_courses_amount as $opt_amount) {
+                $this->create_courses($opt_amount + $man_amount);
+                $this->create_students(5);
+                $this->create_courses_completions($this->courses);
+                $this->enrol_students($this->students, $this->courses);
+                $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
+                
+                //$min_optative_variation = [1];
+                $min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
+                foreach ($min_optative_variation as $min_opt_var) {
+                    $this->set_grade_curricular_minoptionalcourses($min_opt_var);
+                    $this->update_grade_curricular();
+                    $this->check_completions($min_opt_var);
+                }
+            }
+        }
     }
 
     protected function set_grade_curricular_minoptionalcourses($min_optative) {
@@ -333,21 +360,27 @@ class grade_curricular_test extends advanced_testcase {
             }
         }
 
-        $mandatory_courses_to_complete = count($mandatory_courses);
-        $optative_courses_to_complete = count($optative_courses);
+        $mandatory_courses_to_complete = array_unique([count($mandatory_courses), max((count($mandatory_courses)- 1), 0), 0]);
+        $optative_courses_to_complete = array_unique([$min_optative, max(($min_optative - 1), 0), 0]);
 
-        $this->complete_courses($mandatory_courses, $optative_courses, $mandatory_courses_to_complete, $optative_courses_to_complete);
+        foreach ($mandatory_courses_to_complete as $mc) {
+            foreach ($optative_courses_to_complete as $oc) {
+                $this->complete_courses($mandatory_courses, $optative_courses, $mc, $oc);
 
-        sleep(3);
-        $this->prepare_for_next_cron();
-        $this->cron_run();
-        
-        $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
+                sleep(1);
+                $this->prepare_for_next_cron();
+                $this->cron_run();
+                
+                $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
 
-        if (($mandatory_courses_to_complete == count($mandatory_courses)) && ($optative_courses_to_complete >= $min_optative)) {
-            $this->assertEquals(5, count($approved_students));
-        } else {
-            $this->assertEmpty($approved_students);
+                if (($mc == count($mandatory_courses)) && ($oc >= $min_optative)) {
+                    $this->assertEquals(5, count($approved_students));
+                } else {
+                    $this->assertEmpty($approved_students);
+                }
+
+                $this->delete_courses_completions();               
+            }
         }
     }
 
