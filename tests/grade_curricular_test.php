@@ -105,7 +105,10 @@ class grade_curricular_test extends advanced_testcase {
     protected function complete_one_course($course, $student) {
         $this->setUser($student);
 
-        core_completion_external::mark_course_self_completed($course->courseid);
+        $completion = $this->completions_info[$course->courseid]->get_completions($student->id);
+        $completion[0]->mark_complete(time()); //Como só temos um critério, só existe a posição zero. 
+        //Método alternativo para completude.
+        //core_completion_external::mark_course_self_completed($course->courseid);
     }
 
     protected function create_fake_grade_curricular() {
@@ -241,6 +244,7 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     public function test_get_students_by_cohort() {
+        $this->markTestSkipped('skip');
         global $DB;
 
         $this->resetAfterTest(true);
@@ -300,7 +304,7 @@ class grade_curricular_test extends advanced_testcase {
 
     public function test_get_approved_students_var() {
         global $DB;
-        $this->markTestSkipped('skip');
+        //$this->markTestSkipped('skip');
         $this->resetAfterTest(true);
 
         $opt_courses_amount = [3, 2, 0];
@@ -314,7 +318,6 @@ class grade_curricular_test extends advanced_testcase {
                 $this->enrol_students($this->students, $this->courses);
                 $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
                 
-                //$min_optative_variation = [1];
                 $min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
                 foreach ($min_optative_variation as $min_opt_var) {
                     $this->set_grade_curricular_minoptionalcourses($min_opt_var);
