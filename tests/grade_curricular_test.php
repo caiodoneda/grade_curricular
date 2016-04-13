@@ -220,7 +220,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     public function test_get_courses() {
-        $this->markTestSkipped('skip');
         $this->resetAfterTest(true);
 
         $this->create_courses($amount = 10);
@@ -244,7 +243,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     public function test_get_students_by_cohort() {
-        $this->markTestSkipped('skip');
         global $DB;
 
         $this->resetAfterTest(true);
@@ -268,7 +266,7 @@ class grade_curricular_test extends advanced_testcase {
         }
 
         $students = local_grade_curricular::get_students($this->grade_curricular->id, '', 'id');
-        
+
         $this->assertTrue(is_array($students));
 
         $ids = array();
@@ -281,13 +279,12 @@ class grade_curricular_test extends advanced_testcase {
             $testids[] = $student->id;
         }
 
-        $this->assertEquals($ids, $testids);    
+        $this->assertEquals($ids, $testids);
     }
 
     public function test_get_completions_info() {
-        $this->markTestSkipped('skip');
         $this->resetAfterTest(true);
-        
+
         $this->create_courses($amount = 2);
         $this->create_courses_completions($this->courses);
 
@@ -317,7 +314,7 @@ class grade_curricular_test extends advanced_testcase {
                 $this->create_courses_completions($this->courses);
                 $this->enrol_students($this->students, $this->courses);
                 $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
-                
+
                 $min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
                 foreach ($min_optative_variation as $min_opt_var) {
                     $this->set_grade_curricular_minoptionalcourses($min_opt_var);
@@ -360,7 +357,7 @@ class grade_curricular_test extends advanced_testcase {
                 sleep(1);
                 $this->prepare_for_next_cron();
                 $this->cron_run();
-                
+
                 $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
 
                 if (($mc == count($mandatory_courses)) && ($oc >= $min_optative)) {
@@ -369,7 +366,7 @@ class grade_curricular_test extends advanced_testcase {
                     $this->assertEmpty($approved_students);
                 }
 
-                $this->delete_courses_completions();               
+                $this->delete_courses_completions();
             }
         }
     }
@@ -395,7 +392,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
    public function test_save_cfg_grade() {
-       $this->markTestSkipped('skip');
        $this->resetAfterTest(true);
 
        $this->setAdminUser();//TODO Create a specific user
@@ -421,7 +417,6 @@ class grade_curricular_test extends advanced_testcase {
    }
 
    public function test_save_cfg_grade_missing_inscricoesactivityid() {
-       $this->markTestSkipped('skip');
        $this->resetAfterTest(true);
 
        $this->setAdminUser();//TODO Create a specific user
@@ -446,7 +441,6 @@ class grade_curricular_test extends advanced_testcase {
    }
 
    public function test_save_cfg_grade_missing_studentcohortid() {
-       $this->markTestSkipped('skip');
        $this->resetAfterTest(true);
 
        $this->setAdminUser();//TODO Create a specific user
@@ -471,7 +465,6 @@ class grade_curricular_test extends advanced_testcase {
    }
 
    public function test_save_cfg_grade_missint_inscricoesactivityid_and_studentcohortid() {
-       $this->markTestSkipped('skip');
        $this->resetAfterTest(true);
 
        $this->setAdminUser();//TODO Create a specific user
@@ -496,8 +489,8 @@ class grade_curricular_test extends advanced_testcase {
 
    public function test_save_modules() {
        global $DB;
-       $this->markTestSkipped('skip');
-       $this->resetAfterTest(true);
+
+      $this->resetAfterTest(true);
 
        $this->setAdminUser();//TODO Create a specific user
        $this->create_courses($amount = 6);
