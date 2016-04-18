@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Event handler definition
  *
  * @package local_grade_curricular
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,12 +33,12 @@ class local_grade_curricular {
      * @param boolean $only_active return all courses except type GC_IGNORE
      * @return array
      */
-    public static function get_courses($gradeid, $only_active=true) {
+    public static function get_courses($gradeid, $onlyactive = true) {
         global $DB;
 
         $where = '';
         $params = array('gradecurricularid' => $gradeid);
-        if ($only_active) {
+        if ($onlyactive) {
             $where = 'AND gcc.type != :ignore';
             $params['ignore'] = GC_IGNORE;
         }
@@ -55,19 +54,21 @@ class local_grade_curricular {
 
     /**
      * Returns students from the cohort associated to the gradecurricular or
-     * subscribed on at least one of the grade_curricular courses on the same category as the grade_curricular if there is no associated cohort
+     * subscribed on at least one of the grade_curricular courses on the same category as the grade_curricular
+     * if there is no associated cohort.
      *
      * @param int $gradeid
      * @param string groupname
      * @return array
      */
-    public static function get_students($gradeid, $groupname='', $studentsorderby='name', $search = '') {
+    public static function get_students($gradeid, $groupname = '', $studentsorderby = 'name', $search = '') {
         global $DB, $CFG;
 
         $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
-        if($grade->inscricoesactivityid > 0) {
+
+        if ($grade->inscricoesactivityid > 0) {
             $roleids = explode(',', $CFG->gradebookroles);
-            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc
@@ -75,14 +76,14 @@ class local_grade_curricular {
                      JOIN {inscricoes_activities} ia
                        ON (ia.id = gc.inscricoesactivityid)
                      JOIN {inscricoes_cohorts} ic
-                       ON (ic.activityid = ia.id AND ic.roleid {$in_sql})
+                       ON (ic.activityid = ia.id AND ic.roleid {$insql})
                      JOIN {cohort_members} chm
                        ON (chm.cohortid = ic.cohortid)
                      JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
             $params['gradeid'] = $gradeid;
             $params['ignore'] = GC_IGNORE;
-        } else if($grade->studentcohortid > 0) {
+        } else if ($grade->studentcohortid > 0) {
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc
                        ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
@@ -96,7 +97,7 @@ class local_grade_curricular {
                             'ignore'   => GC_IGNORE);
         } else {
             $roleids = explode(',', $CFG->gradebookroles);
-            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
             $from = "FROM {grade_curricular} gc
                      JOIN {context} cctx ON (cctx.id = gc.contextid)
@@ -104,7 +105,7 @@ class local_grade_curricular {
                      JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
                      JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
                      JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
-                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
+                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$insql})
                      JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
             $params['contextlevel'] = CONTEXT_COURSE;
@@ -112,9 +113,9 @@ class local_grade_curricular {
             $params['ignore'] = GC_IGNORE;
         }
 
-        $join_group = '';
+        $joingroup = '';
         if (!empty($groupname)) {
-            $join_group = "JOIN {groups} g ON (g.courseid = gcc.courseid AND g.name = :groupname)
+            $joingroup = "JOIN {groups} g ON (g.courseid = gcc.courseid AND g.name = :groupname)
                            JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)";
             $params['groupname'] = $groupname;
         }
@@ -129,24 +130,25 @@ class local_grade_curricular {
             $where .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%" . $search . "%'";
         }
 
-        //Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos, inclusive com o mesmo papel.
-        $user_fields = implode(',', get_all_user_name_fields());
-        $sql = "SELECT DISTINCT u.id, u.username, {$user_fields}, CONCAT(u.firstname, ' ', u.lastname) as fullname
+        // Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos,
+        // inclusive com o mesmo papel.
+        $userfields = implode(',', get_all_user_name_fields());
+        $sql = "SELECT DISTINCT u.id, u.username, {$userfields}, CONCAT(u.firstname, ' ', u.lastname) as fullname
                  {$from}
-                 {$join_group}
+                 {$joingroup}
                  {$where}
                 ORDER BY {$orderby}";
         return $DB->get_records_sql($sql, $params);
     }
 
-    //Function used by progress report.
-    public static function get_students_progress($grade, $str_groupids, $days_before, $studentsorderby) {
+    // Function used by progress report.
+    public static function get_students_progress($grade, $strgroupids, $daysbefore, $studentsorderby) {
         global $DB, $CFG;
 
         $roleids = explode(',', $CFG->gradebookroles);
-        list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $timebefore = strtotime('-' . $days_before . ' days');
+        $timebefore = strtotime('-' . $daysbefore . ' days');
         $params['contextlevel'] = CONTEXT_COURSE;
         $params['gradeid'] = $grade->id;
         $params['timebefore'] = $timebefore;
@@ -167,9 +169,9 @@ class local_grade_curricular {
                           JOIN {groups_members} gm ON (gm.groupid = g.id)
                           JOIN {course} c ON (c.id = g.courseid)
                           JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
-                          JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid {$in_sql})
+                          JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid {$insql})
                           JOIN {user} u ON (u.id = ra.userid)
-                         WHERE g.id IN ({$str_groupids})
+                         WHERE g.id IN ({$strgroupids})
                          GROUP BY u.id
                        ) uj
              LEFT JOIN {logstore_standard_log} l ON (l.courseid = gcc.courseid AND l.userid = uj.id)
@@ -183,9 +185,9 @@ class local_grade_curricular {
         global $DB, $CFG;
 
         $grade = $DB->get_record('grade_curricular', array('id' => $gradeid), '*', MUST_EXIST);
-        if($grade->inscricoesactivityid > 0) {
+        if ($grade->inscricoesactivityid > 0) {
             $roleids = explode(',', $CFG->gradebookroles);
-            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc
@@ -193,14 +195,14 @@ class local_grade_curricular {
                      JOIN {inscricoes_activities} ia
                        ON (ia.id = gc.inscricoesactivityid)
                      JOIN {inscricoes_cohorts} ic
-                       ON (ic.activityid = ia.id AND ic.roleid {$in_sql})
+                       ON (ic.activityid = ia.id AND ic.roleid {$insql})
                      JOIN {cohort_members} chm
                        ON (chm.cohortid = ic.cohortid)
                      JOIN {user} u ON (u.id = chm.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
             $params['gradeid'] = $gradeid;
             $params['ignore'] = GC_IGNORE;
-        } else if($grade->studentcohortid > 0) {
+        } else if ($grade->studentcohortid > 0) {
             $from = "FROM {grade_curricular} gc
                      JOIN {grade_curricular_courses} gcc
                        ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
@@ -214,7 +216,7 @@ class local_grade_curricular {
                 'ignore'   => GC_IGNORE);
         } else {
             $roleids = explode(',', $CFG->gradebookroles);
-            list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
             $from = "FROM {grade_curricular} gc
                      JOIN {context} cctx ON (cctx.id = gc.contextid)
@@ -222,7 +224,7 @@ class local_grade_curricular {
                      JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
                      JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
                      JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
-                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
+                     JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$insql})
                      JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
             $params['contextlevel'] = CONTEXT_COURSE;
@@ -230,8 +232,7 @@ class local_grade_curricular {
             $params['ignore'] = GC_IGNORE;
         }
 
-
-        $join_group = "JOIN {groups} g ON (g.courseid = gcc.courseid)
+        $joingroup = "JOIN {groups} g ON (g.courseid = gcc.courseid)
                        JOIN {groups_members} gm ON (gm.groupid = g.id AND gm.userid = u.id)";
 
         if ($studentsorderby == 'name') {
@@ -244,18 +245,19 @@ class local_grade_curricular {
             $where .= " AND CONCAT(u.firstname, ' ', u.lastname) LIKE '%" . $search . "%'";
         }
 
-        //Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos, inclusive com o mesmo papel.
-        $user_fields = implode(',', get_all_user_name_fields());
-        $sql = "SELECT u.id, u.username, {$user_fields}, CONCAT(u.firstname, ' ', u.lastname) as fullname, g.name as groupname
-                 {$from}
-                 {$join_group}
-                 {$where}
+        // Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um curso,
+        // inclusive com o mesmo papel.
+        $userfields = implode(',', get_all_user_name_fields());
+        $sql = "SELECT u.id, u.username, {$userfields}, CONCAT(u.firstname, ' ', u.lastname) as fullname, g.name as groupname
+                {$from}
+                {$joingroup}
+                {$where}
                 ORDER BY {$orderby}";
 
         $records = $DB->get_recordset_sql($sql, $params);
 
         $students = array();
-        foreach($records as $key => $record) {
+        foreach ($records as $key => $record) {
             $student = new stdClass();
             $student->id = $record->id;
             $student->username = $record->username;
@@ -288,14 +290,14 @@ class local_grade_curricular {
         $groupnames = array();
 
         $courses = self::get_courses($gradeid);
-        foreach ($courses AS $course) {
+        foreach ($courses as $course) {
             $context = context_course::instance($course->id);
             if (has_capability('moodle/site:accessallgroups', $context)) {
                 $allowedgroups = groups_get_all_groups($course->id);
             } else {
                 $allowedgroups = groups_get_all_groups($course->id, $USER->id);
             }
-            foreach ($allowedgroups AS $group) {
+            foreach ($allowedgroups as $group) {
                 $groupnames[format_string($group->name)] = format_string($group->name);
             }
         }
@@ -314,11 +316,11 @@ class local_grade_curricular {
         global $CFG, $DB;
 
         $roleids = explode(',', $CFG->gradebookroles);
-        list($in_sql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $where_course = '';
-        if(!empty($courseid)) {
-            $where_course = 'AND c.id = :courseid';
+        $wherecourse = '';
+        if (!empty($courseid)) {
+            $wherecourse = 'AND c.id = :courseid';
             $params['courseid'] = $courseid;
         }
 
@@ -329,10 +331,10 @@ class local_grade_curricular {
                   JOIN {grade_curricular_courses} gcc ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
                   JOIN {course} c ON (c.id = gcc.courseid)
                   JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextcourse)
-                  JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$in_sql})
+                  JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$insql})
                   JOIN user u ON (u.id = ra.userid)
                  WHERE u.id = :userid
-                   {$where_course}
+                   {$wherecourse}
                 ORDER BY cc.depth, cc.name";
             $params['contextcourse'] = CONTEXT_COURSE;
             $params['contextcoursecat'] = CONTEXT_COURSECAT;
@@ -341,29 +343,30 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_potential_courses($category_path, $gradeid) {
+    public static function get_potential_courses($categorypath, $gradeid) {
         global $DB;
 
-        $catids = explode('/', $category_path);
+        $catids = explode('/', $categorypath);
         unset($catids[0]);
-        list($in_sql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
         $sql = "SELECT c.id, c.shortname, c.fullname,
-                       gcc.id AS gradecourseid, gcc.type, gcc.workload, gcc.inscribestartdate, gcc.inscribeenddate, gcc.coursedependencyid
+                       gcc.id AS gradecourseid, gcc.type, gcc.workload, gcc.inscribestartdate,
+                       gcc.inscribeenddate, gcc.coursedependencyid
                   FROM {course} c
              LEFT JOIN {grade_curricular_courses} gcc ON (gcc.courseid = c.id AND gcc.gradecurricularid = :gradeid)
-                 WHERE c.category {$in_sql}
+                 WHERE c.category {$insql}
               ORDER BY c.fullname";
         $params['gradeid'] = $gradeid;
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_grade_courses($gradeid, $only_active=false) {
+    public static function get_grade_courses($gradeid, $onlyactive = false) {
         global $DB;
 
-        $params = array('gradecurricularid'=>$gradeid);
+        $params = array('gradecurricularid' => $gradeid);
 
         $where = '';
-        if ($only_active) {
+        if ($onlyactive) {
             $where = 'AND gcc.type != :ignore';
             $params['ignore'] = GC_IGNORE;
         }
@@ -379,12 +382,12 @@ class local_grade_curricular {
         return $DB->get_records_sql($sql, $params);
     }
 
-    // retorna os nomes dos grupos dos cursos da grade curricular aos quais o usuário tem acesso
-    // juntamente com uma lista de ids dos grupos com cada nome
+    // Retorna os nomes dos grupos dos cursos da grade curricular aos quais o usuário tem acesso
+    // juntamente com uma lista de ids dos grupos com cada nome.
     public static function get_groups($grade, $userid) {
         global $DB;
 
-        $params = array('gradeid'=>$grade->id, 'ignore'=>GC_IGNORE);
+        $params = array('gradeid' => $grade->id, 'ignore' => GC_IGNORE);
 
         $context = context::instance_by_id($grade->contextid, MUST_EXIST);
         if (has_capability('moodle/site:accessallgroups', $context)) {
@@ -411,11 +414,11 @@ class local_grade_curricular {
 
         $ctxids = explode('/', $context->path);
         unset($ctxids[0]);
-        list($in_sql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
 
         $sql = "SELECT ch.id, ch.name
                   FROM {cohort} ch
-                 WHERE ch.contextid {$in_sql}
+                 WHERE ch.contextid {$insql}
               ORDER BY ch.name";
         return $DB->get_records_sql_menu($sql, $params);
     }
@@ -424,18 +427,18 @@ class local_grade_curricular {
         global $DB;
 
         $plugins = core_component::get_plugin_list('local');
-        if(!isset($plugins['inscricoes'])) {
+        if (!isset($plugins['inscricoes'])) {
             return array();
         }
 
         $ctxids = explode('/', $context->path);
         unset($ctxids[0]);
-        list($in_sql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($ctxids, SQL_PARAMS_NAMED);
 
         $sql = "SELECT ia.id, ia.externalactivityname
                   FROM {context} ctx
                   JOIN {inscricoes_activities} ia ON (ia.contextid = ctx.id)
-                 WHERE ctx.id {$in_sql}
+                 WHERE ctx.id {$insql}
                    AND NOT EXISTS (SELECT 1
                                      FROM {grade_curricular} gc
                                     WHERE gc.id != :gradeid
@@ -450,23 +453,23 @@ class local_grade_curricular {
 
         $catids = explode('/', $category->path);
         unset($catids[0]);
-        list($in_sql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
 
         $sql = "SELECT gc.*
                   FROM {course_categories} cc
                   JOIN {context} ctx ON (ctx.instanceid = cc.id AND ctx.contextlevel = :contextlevel)
                   JOIN {grade_curricular} gc ON (gc.contextid = ctx.id)
-                 WHERE cc.id {$in_sql}
+                 WHERE cc.id {$insql}
                     OR cc.path LIKE '%/{$category->id}/%'
               ORDER BY cc.depth";
         $params['contextlevel'] = CONTEXT_COURSECAT;
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_tutors($grade, $str_groupids) {
+    public static function get_tutors($grade, $strgroupids) {
         global $DB;
 
-        $roleid = $DB->get_field('grade_curricular', 'tutorroleid', array('id'=>$grade->id));
+        $roleid = $DB->get_field('grade_curricular', 'tutorroleid', array('id' => $grade->id));
 
         $sql = "SELECT DISTINCT u.id, CONCAT(u.firstname, ' ', u.lastname) as fullname
                   FROM {groups} g
@@ -475,49 +478,49 @@ class local_grade_curricular {
                   JOIN {context} ctx ON (ctx.contextlevel = :contextlevel AND ctx.instanceid = c.id)
                   JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = gm.userid AND ra.roleid = :roleid)
                   JOIN {user} u ON (u.id = ra.userid)
-                 WHERE g.id IN ({$str_groupids})";
-        return $DB->get_records_sql($sql, array('contextlevel'=>CONTEXT_COURSE, 'roleid'=>$roleid));
+                 WHERE g.id IN ({$strgroupids})";
+        return $DB->get_records_sql($sql, array('contextlevel' => CONTEXT_COURSE, 'roleid' => $roleid));
     }
 
-    public static function get_approved_students($grade_curricular, $students = array()) {
-        $courses = self::get_courses($grade_curricular->id, true);
+    public static function get_approved_students($gradecurricular, $students = array()) {
+        $courses = self::get_courses($gradecurricular->id, true);
 
-        $approved_students = self::verify_approved_students($grade_curricular, $courses, $students);
+        $approvedstudents = self::verify_approved_students($gradecurricular, $courses, $students);
 
-        return $approved_students;
+        return $approvedstudents;
     }
 
-    public static function verify_approved_students($grade_curricular, $courses, $students) {
-        $approved_students = array();
+    public static function verify_approved_students($gradecurricular, $courses, $students) {
+        $approvedstudents = array();
 
-        $completions_info = self::get_completions_info($courses);
+        $completionsinfo = self::get_completions_info($courses);
 
         if (empty($students)) {
-            $students = self::get_students($grade_curricular->id);
+            $students = self::get_students($gradecurricular->id);
         }
 
-        foreach($students AS $user) {
-            $count_optative = 0;
+        foreach ($students as $user) {
+            $countoptative = 0;
             $approved = true;
-            $student_courses = array();
+            $studentcourses = array();
 
-            foreach($courses AS $courseid=>$course) {
+            foreach ($courses as $courseid => $course) {
                 $context = context_course::instance($courseid);
-                
+
                 if ($course->type == GC_OPTIONAL) {
                     if (is_enrolled($context, $user)) {
-                        if ($completions_info[$courseid]->is_course_complete($user->id)){
+                        if ($completionsinfo[$courseid]->is_course_complete($user->id)) {
                             if ($course->workload > 0) {
-                                $student_courses[$courseid] = $course->fullname;
+                                $studentcourses[$courseid] = $course->fullname;
                             }
 
-                            $count_optative++;
+                            $countoptative++;
                         }
                     }
-                } elseif ($course->type == GC_MANDATORY) {
-                    if ($completions_info[$courseid]->is_course_complete($user->id)){
+                } else if ($course->type == GC_MANDATORY) {
+                    if ($completionsinfo[$courseid]->is_course_complete($user->id)) {
                         if ($course->workload > 0) {
-                            $student_courses[$courseid] = $course->fullname;
+                            $studentcourses[$courseid] = $course->fullname;
                         }
                     } else {
                         $approved = false;
@@ -525,23 +528,23 @@ class local_grade_curricular {
                 }
             }
 
-            if ($approved && ($count_optative >= $grade_curricular->minoptionalcourses)) {
-                $user->courses = $student_courses;
-                $approved_students[$user->id] = $user;
+            if ($approved && ($countoptative >= $gradecurricular->minoptionalcourses)) {
+                $user->courses = $studentcourses;
+                $approvedstudents[$user->id] = $user;
             }
         }
 
-        return $approved_students;
+        return $approvedstudents;
     }
 
     public static function get_completions_info($courses) {
-        $completions_info = array();
+        $completionsinfo = array();
 
-        foreach($courses as $id => $course) {
-            $completions_info[$id] = new completion_info($course);
+        foreach ($courses as $id => $course) {
+            $completionsinfo[$id] = new completion_info($course);
         }
 
-        return $completions_info;
+        return $completionsinfo;
     }
 
     public static function save_modules($contextid, $category, $formdata) {
@@ -594,46 +597,54 @@ class local_grade_curricular {
             $courses = self::get_potential_courses($category->path, $gradecurricularid);
             $courseids = array();
 
-            foreach($courses as $c) {
-                if(isset($types[$c->id])) {
-                    $grade_course = new stdclass();
-                    $grade_course->gradecurricularid = $gradecurricularid;
-                    $grade_course->courseid = $c->id;
+            foreach ($courses as $c) {
+                if (isset($types[$c->id])) {
+                    $gradecourse = new stdclass();
+                    $gradecourse->gradecurricularid = $gradecurricularid;
+                    $gradecourse->courseid = $c->id;
 
-                    $grade_course->type = $types[$c->id];
-                    $grade_course->workload = $workloads[$c->id];
-                    if($grade_course->workload < 0 || $grade_course->workload > 360) {
+                    $gradecourse->type = $types[$c->id];
+                    $gradecourse->workload = $workloads[$c->id];
+
+                    if ($gradecourse->workload < 0 || $gradecourse->workload > 360) {
                         $errors[$c->fullname][] = get_string('invalid_workload', 'local_grade_curricular');
                     }
-                    $grade_course->coursedependencyid = $dependencies[$c->id];
-                    if($dependencies[$c->id] > 0 && !in_array($types[$dependencies[$c->id]], array(GC_MANDATORY, GC_OPTIONAL))) {
+
+                    $gradecourse->coursedependencyid = $dependencies[$c->id];
+
+                    if ($dependencies[$c->id] > 0 && !in_array($types[$dependencies[$c->id]], array(GC_MANDATORY, GC_OPTIONAL))) {
                         $errors[$c->fullname][] = get_string('dependecy_not_opt_dem', 'local_grade_curricular');
                     }
-                    $grade_course->inscribestartdate = make_timestamp($startyears[$c->id], $startmonths[$c->id], $startdays[$c->id]);
-                    $grade_course->inscribeenddate = make_timestamp($endyears[$c->id], $endmonths[$c->id], $enddays[$c->id]);
-                    if($grade_course->inscribeenddate < $grade_course->inscribestartdate) {
+
+                    $gradecourse->inscribestartdate = make_timestamp($startyears[$c->id], $startmonths[$c->id], $startdays[$c->id]);
+                    $gradecourse->inscribeenddate = make_timestamp($endyears[$c->id], $endmonths[$c->id], $enddays[$c->id]);
+
+                    if ($gradecourse->inscribeenddate < $gradecourse->inscribestartdate) {
                         $errors[$c->fullname][] = get_string('end_before_start', 'local_grade_curricular');
                     }
-                    $grade_course->timemodified = time();
-                    if(empty($c->gradecourseid)) {
-                        $DB->insert_record('grade_curricular_courses', $grade_course);
+
+                    $gradecourse->timemodified = time();
+
+                    if (empty($c->gradecourseid)) {
+                        $DB->insert_record('grade_curricular_courses', $gradecourse);
                     } else {
-                        $grade_course->id = $c->gradecourseid;
-                        $DB->update_record('grade_curricular_courses', $grade_course);
+                        $gradecourse->id = $c->gradecourseid;
+                        $DB->update_record('grade_curricular_courses', $gradecourse);
                     }
 
                     $courseids[] = $c->id;
                 }
             }
-            if(!empty($errors)) {
+
+            if (!empty($errors)) {
                 $SESSION->errors = $errors;
             }
 
-            if(empty($courseids)) {
-                $DB->delete_records('grade_curricular_courses', array('gradecurricularid'=>$gradecurricularid));
+            if (empty($courseids)) {
+                $DB->delete_records('grade_curricular_courses', array('gradecurricularid' => $gradecurricularid));
             } else {
-                list($not_in_sql, $params) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'cid', false);
-                $sql = "gradecurricularid = :gradecurricularid AND courseid {$not_in_sql}";
+                list($notinsql, $params) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'cid', false);
+                $sql = "gradecurricularid = :gradecurricularid AND courseid {$notinsql}";
                 $params['gradecurricularid'] = $gradecurricularid;
                 $DB->delete_records_select('grade_curricular_courses', $sql, $params);
             }
@@ -649,9 +660,9 @@ class local_grade_curricular {
 
             $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
 
-            //check if the inscricoesactivityid and studentcohortid are set, otherwise, save 0.
-            $inscricoesactivityid = optional_param('inscricoesactivityid', -1 ,PARAM_INT);
-            $studentcohortid = optional_param('studentcohortid', -1 ,PARAM_INT);
+            // Check if the inscricoesactivityid and studentcohortid are set, otherwise, save 0.
+            $inscricoesactivityid = optional_param('inscricoesactivityid', -1, PARAM_INT);
+            $studentcohortid = optional_param('studentcohortid', -1, PARAM_INT);
             if ($inscricoesactivityid == -1) {
                 $formdata->inscricoesactivityid = 0;
             }
@@ -676,14 +687,14 @@ class local_grade_curricular {
                     print_error($e);
                 }
             } else {
-              try {
-                  $record->minoptionalcourses = 0;
-                  $record->maxoptionalcourses = 0;
-                  $record->optionalatonetime = 0;
-                  $DB->insert_record('grade_curricular', $record);
-              } catch (Exception  $e) {
-                  print_error($e);
-              }
+                try {
+                    $record->minoptionalcourses = 0;
+                    $record->maxoptionalcourses = 0;
+                    $record->optionalatonetime = 0;
+                    $DB->insert_record('grade_curricular', $record);
+                } catch (Exception  $e) {
+                    print_error($e);
+                }
             }
         }
     }

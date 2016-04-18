@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -17,7 +16,7 @@
 
 /**
  * This file keeps track of upgrades to
- * the forum module
+ * the local_grade_curricular plugin
  *
  * Sometimes, changes between versions involve
  * alterations to database structures and other

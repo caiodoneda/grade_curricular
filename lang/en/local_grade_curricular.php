@@ -1,4 +1,24 @@
-<?php // $Id$
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ *
+ * @package local_grade_curricular
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 $string['pluginname'] = 'Grade Curricular';
 $string['pluginname_desc'] = 'Define a grade curricular de um curso';
@@ -56,12 +76,11 @@ $string['configurations'] = 'Configurações';
 $string['tutor'] = 'Tutor';
 $string['tutors'] = 'Tutores';
 
-//tabs names
-
+// Tabs names.
 $string['modules'] = 'Configuração dos cursos Moodle';
 $string['gradecurricular_additional'] = 'Configurações adicionais';
 
-//help buttons
+// Help buttons.
 $string['minoptionalcourses_help'] = 'Número mínimo de cursos optativos que o estudante tem que se inscrever e completar, para que seja aprovado na Grade Curricular.';
 $string['maxoptionalcourses_help'] = 'Número máximo de cursos optativos em que o estudante pode se inscrever.';
 $string['optionalatonetime_help'] = 'Help';
@@ -76,7 +95,7 @@ $string['students_selection_help'] = 'Seleção de estudantes ';
 $string['notecourse_help'] = 'Nesse campo deve-se informar qual curso Moodle, irá armazenar as anotações feitas pelos tutores,
 com a possibilidade de não salvar em nenhum curso Moodle.';
 
-//errors
+// Errors.
 $string['minoptionalcourseserror'] = 'Esse valor precisa ser menor ou igual ao valor definido no campo "Número máximo de cursos Moodle optativos".';
 $string['maxoptionalcourseserror'] = 'Esse valor precisa ser maior ou igual ao número mínimo de cursos Moodle optativos. ';
 

@@ -1,9 +1,25 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package local_grade_curricular
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -11,7 +27,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 global $CFG;
 
-require_once($CFG->dirroot . '/local/grade_curricular/classes/grade_curricular.php'); // Include the code to test
+require_once($CFG->dirroot . '/local/grade_curricular/classes/grade_curricular.php'); // Include the code to test.
 require_once($CFG->dirroot . '/lib/completionlib.php');
 require_once($CFG->dirroot . '/completion/criteria/completion_criteria_self.php');
 require_once($CFG->libdir . '/cronlib.php');
@@ -21,30 +37,31 @@ require_once($CFG->dirroot.'/completion/cron.php');
 /** This class contains the test cases for the functions in grade_curricular.php. */
 class grade_curricular_test extends advanced_testcase {
 
-    protected $grade_curricular;
-    protected $grade_curricular_courses;
+    protected $gradecurricular;
+    protected $gradecurricularcourses;
     protected $students;
     protected $category;
     protected $courses;
-    protected $completions_info;
+    protected $completionsinfo;
 
     public function setUp() {
         global $CFG;
 
-        // //enabling course completion globally
+        // Enabling course completion globally.
         $CFG->enablecompletion = 1;
 
         $this->category = $this->getDataGenerator()->create_category();
-        $this->completions_info = array();
+        $this->completionsinfo = array();
 
-        $this->grade_curricular = $this->create_fake_grade_curricular();
+        $this->gradecurricular = $this->create_fake_grade_curricular();
     }
 
     protected function create_courses($amount) {
         $courses = array();
 
         for ($i = 1; $i <= $amount; $i++) {
-            $courses[$i] = $this->getDataGenerator()->create_course(array('category' => $this->category->id, 'enablecompletion' => 1));
+            $courses[$i] = $this->getDataGenerator()->create_course(
+                           array('category' => $this->category->id, 'enablecompletion' => 1));
         }
 
         return $this->courses = $courses;
@@ -63,7 +80,7 @@ class grade_curricular_test extends advanced_testcase {
     protected function enrol_students($students = array(), $courses = array()) {
         foreach ($courses as $key => $course) {
             foreach ($students as $key => $student) {
-                $this->getDataGenerator()->enrol_user($student->id, $course->id, 5); //5 is the student roleid.
+                $this->getDataGenerator()->enrol_user($student->id, $course->id, 5); // 5 is the student roleid.
             }
         }
     }
@@ -72,7 +89,7 @@ class grade_curricular_test extends advanced_testcase {
         global $CFG;
 
         foreach ($courses as $course) {
-            //Creating and enabling new completion for each course.
+            // Creating and enabling new completion for each course.
             $this->completions_info[$course->id] = new completion_info($course);
 
             $criteriadata = new stdClass();
@@ -97,7 +114,7 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function delete_courses_completions() {
-        foreach ($this->completions_info as $completion) {
+        foreach ($this->completionsinfo as $completion) {
             $completion->delete_course_completion_data();
         }
     }
@@ -106,9 +123,9 @@ class grade_curricular_test extends advanced_testcase {
         $this->setUser($student);
 
         $completion = $this->completions_info[$course->courseid]->get_completions($student->id);
-        $completion[0]->mark_complete(time()); //Como só temos um critério, só existe a posição zero. 
-        //Método alternativo para completude.
-        //core_completion_external::mark_course_self_completed($course->courseid);
+        $completion[0]->mark_complete(time()); // Como só temos um critério, só existe a posição zero.
+
+        // Método alternativo para completude... core_completion_external::mark_course_self_completed($course->courseid).
     }
 
     protected function create_fake_grade_curricular() {
@@ -133,32 +150,32 @@ class grade_curricular_test extends advanced_testcase {
             var_dump($e);
         }
 
-        return $DB->get_record('grade_curricular', array('id'=>$gradeid));
+        return $DB->get_record('grade_curricular', array('id' => $gradeid));
     }
 
     protected function update_grade_curricular() {
         global $DB;
 
-        return $this->grade_curricular = $DB->get_record('grade_curricular', array('id'=>$this->grade_curricular->id));
+        return $this->gradecurricular = $DB->get_record('grade_curricular', array('id' => $this->gradecurricular->id));
     }
 
-    protected function associate_courses_to_grade_curricular($courses, $optative_amount, $mandatory_amount) {
+    protected function associate_courses_to_grade_curricular($courses, $optativeamount, $mandatoryamount) {
         global $DB;
 
         try {
-            $DB->delete_records('grade_curricular_courses');//cleaning the table.
+            $DB->delete_records('grade_curricular_courses'); // Cleaning the table.
         } catch (Exception $e) {
             var_dump($e);
         }
 
         $record = new stdClass();
-        $record->gradecurricularid = $this->grade_curricular->id;
+        $record->gradecurricularid = $this->gradecurricular->id;
         $record->inscribestartdate = time();
         $record->inscribeenddate = time();
         $record->coursedependencyid = 0;
         $record->timemodified = time();
 
-        for ($i = 1; $i <= $optative_amount; $i++) {
+        for ($i = 1; $i <= $optativeamount; $i++) {
             $record->courseid = array_pop($courses)->id;
             $record->type = 2;
             $record->workload = 1;
@@ -170,24 +187,26 @@ class grade_curricular_test extends advanced_testcase {
             }
         }
 
-        for ($i = 1; $i <= $mandatory_amount; $i++) {
+        for ($i = 1; $i <= $mandatoryamount; $i++) {
             $record->courseid = array_pop($courses)->id;
             $record->type = 1;
             $record->workload = 1;
             try {
                 $DB->insert_record('grade_curricular_courses', $record);
             } catch (Exception $e) {
-                var_dump($e);   
+                var_dump($e);
             }
         }
 
-        $this->grade_curricular_courses = $DB->get_records('grade_curricular_courses', array('gradecurricularid'=>$this->grade_curricular->id));
+        $this->gradecurricularcourses = $DB->get_records('grade_curricular_courses',
+                                                          array('gradecurricularid' => $this->gradecurricular->id));
     }
 
     protected function update_grade_curricular_courses() {
         global $DB;
 
-        return $this->grade_curricular_courses = $DB->get_records('grade_curricular_courses', array('gradecurricularid'=>$this->grade_curricular->id));
+        return $this->gradecurricularcourses = $DB->get_records('grade_curricular_courses',
+                                                                array('gradecurricularid' => $this->gradecurricular->id));
     }
 
     protected function cron_run() {
@@ -225,7 +244,7 @@ class grade_curricular_test extends advanced_testcase {
         $this->create_courses($amount = 10);
         $this->associate_courses_to_grade_curricular($this->courses, $optative = 5, $mandatory = 5);
 
-        $courses = local_grade_curricular::get_courses($this->grade_curricular->id);
+        $courses = local_grade_curricular::get_courses($this->gradecurricular->id);
 
         $this->assertTrue(is_array($courses));
 
@@ -235,7 +254,7 @@ class grade_curricular_test extends advanced_testcase {
         }
 
         $testids = array();
-        foreach ($this->grade_curricular_courses as $key => $course) {
+        foreach ($this->gradecurricularcourses as $key => $course) {
             $testids[] = $course->courseid;
         }
 
@@ -258,14 +277,14 @@ class grade_curricular_test extends advanced_testcase {
         }
 
         try {
-            $this->grade_curricular->inscricoesactivityid = 0;
-            $this->grade_curricular->studentcohortid = $cohort->id;
-            $DB->update_record('grade_curricular', $this->grade_curricular);
+            $this->gradecurricular->inscricoesactivityid = 0;
+            $this->gradecurricular->studentcohortid = $cohort->id;
+            $DB->update_record('grade_curricular', $this->gradecurricular);
         } catch (Exception $e) {
             var_dump($e);
         }
 
-        $students = local_grade_curricular::get_students($this->grade_curricular->id, '', 'id');
+        $students = local_grade_curricular::get_students($this->gradecurricular->id, '', 'id');
 
         $this->assertTrue(is_array($students));
 
@@ -288,7 +307,7 @@ class grade_curricular_test extends advanced_testcase {
         $this->create_courses($amount = 2);
         $this->create_courses_completions($this->courses);
 
-        foreach ($this->completions_info as $key => $ci) {
+        foreach ($this->completionsinfo as $key => $ci) {
             unset($ci->criterion);
         }
 
@@ -301,69 +320,69 @@ class grade_curricular_test extends advanced_testcase {
 
     public function test_get_approved_students_var() {
         global $DB;
-        //$this->markTestSkipped('skip');
+
         $this->resetAfterTest(true);
 
-        $opt_courses_amount = [3, 2, 0];
-        $man_courses_amount = [3, 2, 0];
+        $optcoursesamount = [3, 2, 0];
+        $mancoursesamount = [3, 2, 0];
 
-        foreach ($man_courses_amount as $man_amount) {
-            foreach ($opt_courses_amount as $opt_amount) {
-                $this->create_courses($opt_amount + $man_amount);
+        foreach ($mancoursesamount as $manamount) {
+            foreach ($optcoursesamount as $optamount) {
+                $this->create_courses($optamount + $manamount);
                 $this->create_students(5);
                 $this->create_courses_completions($this->courses);
                 $this->enrol_students($this->students, $this->courses);
-                $this->associate_courses_to_grade_curricular($this->courses, $opt_amount, $man_amount);
+                $this->associate_courses_to_grade_curricular($this->courses, $optamount, $manamount);
 
-                $min_optative_variation = array_unique([$opt_amount, max(($opt_amount - 1), 0), 0]);
-                foreach ($min_optative_variation as $min_opt_var) {
-                    $this->set_grade_curricular_minoptionalcourses($min_opt_var);
+                $minoptativevariation = array_unique([$optamount, max(($optamount - 1), 0), 0]);
+                foreach ($minoptativevariation as $minoptvar) {
+                    $this->set_grade_curricular_minoptionalcourses($minoptvar);
                     $this->update_grade_curricular();
-                    $this->check_completions($min_opt_var);
+                    $this->check_completions($minoptvar);
                 }
             }
         }
     }
 
-    protected function set_grade_curricular_minoptionalcourses($min_optative) {
+    protected function set_grade_curricular_minoptionalcourses($minoptative) {
         global $DB;
 
         try {
-            $DB->set_field('grade_curricular', 'minoptionalcourses', $min_optative, array('id'=>$this->grade_curricular->id));
+            $DB->set_field('grade_curricular', 'minoptionalcourses', $minoptative, array('id' => $this->gradecurricular->id));
         } catch (Exception $e) {
             var_dump($e);
         }
     }
 
-    protected function check_completions($min_optative) {
-        $mandatory_courses = array();
-        $optative_courses = array();
+    protected function check_completions($minoptative) {
+        $mandatorycourses = array();
+        $optativecourses = array();
 
-        foreach ($this->grade_curricular_courses as $course) {
+        foreach ($this->gradecurricularcourses as $course) {
             if ($course->type == 1) {
-                $mandatory_courses[] = $course;
+                $mandatorycourses[] = $course;
             } else {
-                $optative_courses[] = $course;
+                $optativecourses[] = $course;
             }
         }
 
-        $mandatory_courses_to_complete = array_unique([count($mandatory_courses), max((count($mandatory_courses)- 1), 0), 0]);
-        $optative_courses_to_complete = array_unique([$min_optative, max(($min_optative - 1), 0), 0]);
+        $mandatorycoursestocomplete = array_unique([count($mandatorycourses), max((count($mandatorycourses) - 1), 0), 0]);
+        $optativecoursestocomplete = array_unique([$minoptative, max(($minoptative - 1), 0), 0]);
 
-        foreach ($mandatory_courses_to_complete as $mc) {
-            foreach ($optative_courses_to_complete as $oc) {
-                $this->complete_courses($mandatory_courses, $optative_courses, $mc, $oc);
+        foreach ($mandatorycoursestocomplete as $mc) {
+            foreach ($optativecoursestocomplete as $oc) {
+                $this->complete_courses($mandatorycourses, $optativecourses, $mc, $oc);
 
                 sleep(1);
                 $this->prepare_for_next_cron();
                 $this->cron_run();
 
-                $approved_students = local_grade_curricular::get_approved_students($this->grade_curricular, $this->students);
+                $approvedstudents = local_grade_curricular::get_approved_students($this->gradecurricular, $this->students);
 
-                if (($mc == count($mandatory_courses)) && ($oc >= $min_optative)) {
-                    $this->assertEquals(5, count($approved_students));
+                if (($mc == count($mandatorycourses)) && ($oc >= $minoptative)) {
+                    $this->assertEquals(5, count($approvedstudents));
                 } else {
-                    $this->assertEmpty($approved_students);
+                    $this->assertEmpty($approvedstudents);
                 }
 
                 $this->delete_courses_completions();
@@ -371,19 +390,19 @@ class grade_curricular_test extends advanced_testcase {
         }
     }
 
-    protected function complete_courses($mandatory_courses, $optative_courses, $man_courses_amount, $opt_courses_amount) {
-        if (!empty($mandatory_courses)) {
-            for ($i = 1; $i <= $man_courses_amount; $i++) {
-                $course = array_pop($mandatory_courses);
+    protected function complete_courses($mandatorycourses, $optativecourses, $mancoursesamount, $optcoursesamount) {
+        if (!empty($mandatorycourses)) {
+            for ($i = 1; $i <= $mancoursesamount; $i++) {
+                $course = array_pop($mandatorycourses);
                 foreach ($this->students as $s) {
                     $this->complete_one_course($course, $s);
                 }
             }
         }
 
-        if (!empty($optative_courses)) {
-            for ($i = 1; $i <= $opt_courses_amount; $i++) {
-                $course = array_pop($optative_courses);
+        if (!empty($optativecourses)) {
+            for ($i = 1; $i <= $optcoursesamount; $i++) {
+                $course = array_pop($optativecourses);
                 foreach ($this->students as $s) {
                     $this->complete_one_course($course, $s);
                 }
@@ -391,170 +410,173 @@ class grade_curricular_test extends advanced_testcase {
         }
     }
 
-   public function test_save_cfg_grade() {
-       $this->resetAfterTest(true);
+    public function test_save_cfg_grade() {
+        $this->resetAfterTest(true);
 
-       $this->setAdminUser();//TODO Create a specific user
+        $this->setAdminUser();
 
-       $context = context_coursecat::instance($this->category->id);
+        $context = context_coursecat::instance($this->category->id);
 
-       $_POST = array();
-       $_POST['gradecurricularid'] = $this->grade_curricular->id;
-       $_POST['inscricoesactivityid'] = 4;
-       $_POST['studentcohortid'] = 0;
-       $_POST['tutorroleid'] = 2;
-       $_POST['notecourseid'] = 15;
-       $_POST['sesskey'] = sesskey();
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->gradecurricular->id;
+        $_POST['inscricoesactivityid'] = 4;
+        $_POST['studentcohortid'] = 0;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
 
-       local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
 
-       $grade_curricular = $this->update_grade_curricular();
+        $gradecurricular = $this->update_grade_curricular();
 
-       $this->assertEquals($grade_curricular->inscricoesactivityid, 4);
-       $this->assertEquals($grade_curricular->studentcohortid, 0);
-       $this->assertEquals($grade_curricular->tutorroleid, 2);
-       $this->assertEquals($grade_curricular->notecourseid, 15);
-   }
+        $this->assertEquals($gradecurricular->inscricoesactivityid, 4);
+        $this->assertEquals($gradecurricular->studentcohortid, 0);
+        $this->assertEquals($gradecurricular->tutorroleid, 2);
+        $this->assertEquals($gradecurricular->notecourseid, 15);
+    }
 
-   public function test_save_cfg_grade_missing_inscricoesactivityid() {
-       $this->resetAfterTest(true);
+    public function test_save_cfg_grade_missing_inscricoesactivityid() {
+        $this->resetAfterTest(true);
 
-       $this->setAdminUser();//TODO Create a specific user
+        $this->setAdminUser();
 
-       $context = context_coursecat::instance($this->category->id);
+        $context = context_coursecat::instance($this->category->id);
 
-       $_POST = array();
-       $_POST['gradecurricularid'] = $this->grade_curricular->id;
-       $_POST['studentcohortid'] = 0;
-       $_POST['tutorroleid'] = 2;
-       $_POST['notecourseid'] = 15;
-       $_POST['sesskey'] = sesskey();
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->gradecurricular->id;
+        $_POST['studentcohortid'] = 0;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
 
-       local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
 
-       $grade_curricular = $this->update_grade_curricular();
+        $gradecurricular = $this->update_grade_curricular();
 
-       $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
-       $this->assertEquals($grade_curricular->studentcohortid, 0);
-       $this->assertEquals($grade_curricular->tutorroleid, 2);
-       $this->assertEquals($grade_curricular->notecourseid, 15);
-   }
+        $this->assertEquals($gradecurricular->inscricoesactivityid, 0);
+        $this->assertEquals($gradecurricular->studentcohortid, 0);
+        $this->assertEquals($gradecurricular->tutorroleid, 2);
+        $this->assertEquals($gradecurricular->notecourseid, 15);
+    }
 
-   public function test_save_cfg_grade_missing_studentcohortid() {
-       $this->resetAfterTest(true);
+    public function test_save_cfg_grade_missing_studentcohortid() {
+        $this->resetAfterTest(true);
 
-       $this->setAdminUser();//TODO Create a specific user
+        $this->setAdminUser();
 
-       $context = context_coursecat::instance($this->category->id);
+        $context = context_coursecat::instance($this->category->id);
 
-       $_POST = array();
-       $_POST['gradecurricularid'] = $this->grade_curricular->id;
-       $_POST['inscricoesactivityid'] = 4;
-       $_POST['tutorroleid'] = 2;
-       $_POST['notecourseid'] = 15;
-       $_POST['sesskey'] = sesskey();
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->gradecurricular->id;
+        $_POST['inscricoesactivityid'] = 4;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
 
-       local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
 
-       $grade_curricular = $this->update_grade_curricular();
+        $gradecurricular = $this->update_grade_curricular();
 
-       $this->assertEquals($grade_curricular->inscricoesactivityid, 4);
-       $this->assertEquals($grade_curricular->studentcohortid, 0);
-       $this->assertEquals($grade_curricular->tutorroleid, 2);
-       $this->assertEquals($grade_curricular->notecourseid, 15);
-   }
+        $this->assertEquals($gradecurricular->inscricoesactivityid, 4);
+        $this->assertEquals($gradecurricular->studentcohortid, 0);
+        $this->assertEquals($gradecurricular->tutorroleid, 2);
+        $this->assertEquals($gradecurricular->notecourseid, 15);
+    }
 
-   public function test_save_cfg_grade_missint_inscricoesactivityid_and_studentcohortid() {
-       $this->resetAfterTest(true);
+    public function test_save_cfg_grade_missint_inscricoesactivityid_and_studentcohortid() {
+        $this->resetAfterTest(true);
 
-       $this->setAdminUser();//TODO Create a specific user
+        $this->setAdminUser();
 
-       $context = context_coursecat::instance($this->category->id);
+        $context = context_coursecat::instance($this->category->id);
 
-       $_POST = array();
-       $_POST['gradecurricularid'] = $this->grade_curricular->id;
-       $_POST['tutorroleid'] = 2;
-       $_POST['notecourseid'] = 15;
-       $_POST['sesskey'] = sesskey();
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->gradecurricular->id;
+        $_POST['tutorroleid'] = 2;
+        $_POST['notecourseid'] = 15;
+        $_POST['sesskey'] = sesskey();
 
-       local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
+        local_grade_curricular::save_cfg_grade($context->id, (object) $_POST);
 
-       $grade_curricular = $this->update_grade_curricular();
+        $gradecurricular = $this->update_grade_curricular();
 
-       $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
-       $this->assertEquals($grade_curricular->studentcohortid, 0);
-       $this->assertEquals($grade_curricular->tutorroleid, 2);
-       $this->assertEquals($grade_curricular->notecourseid, 15);
-   }
+        $this->assertEquals($gradecurricular->inscricoesactivityid, 0);
+        $this->assertEquals($gradecurricular->studentcohortid, 0);
+        $this->assertEquals($gradecurricular->tutorroleid, 2);
+        $this->assertEquals($gradecurricular->notecourseid, 15);
+    }
 
-   public function test_save_modules() {
-       global $DB;
+    public function test_save_modules() {
+        global $DB;
 
-      $this->resetAfterTest(true);
+        $this->resetAfterTest(true);
 
-       $this->setAdminUser();//TODO Create a specific user
-       $this->create_courses($amount = 6);
-       $this->associate_courses_to_grade_curricular($this->courses, $optative = 3, $mandatory = 3);
+        $this->setAdminUser();
+        $this->create_courses($amount = 6);
+        $this->associate_courses_to_grade_curricular($this->courses, $optative = 3, $mandatory = 3);
 
-       $context = context_coursecat::instance($this->category->id);
+        $context = context_coursecat::instance($this->category->id);
 
-       $_POST = array();
-       $_POST['gradecurricularid'] = $this->grade_curricular->id;
-       $_POST['minoptionalcourses'] = 7;
-       $_POST['maxoptionalcourses'] = 15;
-       $_POST['optionalatonetime'] = 5;
+        $_POST = array();
+        $_POST['gradecurricularid'] = $this->gradecurricular->id;
+        $_POST['minoptionalcourses'] = 7;
+        $_POST['maxoptionalcourses'] = 15;
+        $_POST['optionalatonetime'] = 5;
 
-       $_POST['sesskey'] = sesskey();
+        $_POST['sesskey'] = sesskey();
 
-       $_POST['type'] = array();
-       $_POST['workload'] = array();
-       $_POST['dependencies'] = array();
-       $_POST['startdays'] = array();
-       $_POST['startmonths'] = array();
-       $_POST['startyears'] = array();
-       $_POST['enddays'] = array();
-       $_POST['endmonths'] = array();
-       $_POST['endyears'] = array();
+        $_POST['type'] = array();
+        $_POST['workload'] = array();
+        $_POST['dependencies'] = array();
+        $_POST['startdays'] = array();
+        $_POST['startmonths'] = array();
+        $_POST['startyears'] = array();
+        $_POST['enddays'] = array();
+        $_POST['endmonths'] = array();
+        $_POST['endyears'] = array();
 
-       foreach ($this->grade_curricular_courses as $course) {
-           $_POST['type'][$course->courseid] = 1;
-           $_POST['workload'][$course->courseid] = 100;
-           $_POST['dependencies'][$course->courseid] = 0;
-           $_POST['startdays'][$course->courseid] = 7;
-           $_POST['startmonths'][$course->courseid] = 1;
-           $_POST['startyears'][$course->courseid] = 2016;
-           $_POST['enddays'][$course->courseid] = 25;
-           $_POST['endmonths'][$course->courseid] = 12;
-           $_POST['endyears'][$course->courseid] = 2016;
-       }
+        foreach ($this->gradecurricularcourses as $course) {
+            $_POST['type'][$course->courseid] = 1;
+            $_POST['workload'][$course->courseid] = 100;
+            $_POST['dependencies'][$course->courseid] = 0;
+            $_POST['startdays'][$course->courseid] = 7;
+            $_POST['startmonths'][$course->courseid] = 1;
+            $_POST['startyears'][$course->courseid] = 2016;
+            $_POST['enddays'][$course->courseid] = 25;
+            $_POST['endmonths'][$course->courseid] = 12;
+            $_POST['endyears'][$course->courseid] = 2016;
+        }
 
-       local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST);
+        local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST);
 
-       $grade_curricular = $this->update_grade_curricular();
+        $gradecurricular = $this->update_grade_curricular();
 
-       $this->assertEquals($grade_curricular->inscricoesactivityid, 0);
-       $this->assertEquals($grade_curricular->minoptionalcourses, 7);
-       $this->assertEquals($grade_curricular->maxoptionalcourses, 15);
-       $this->assertEquals($grade_curricular->optionalatonetime, 5);
+        $this->assertEquals($gradecurricular->inscricoesactivityid, 0);
+        $this->assertEquals($gradecurricular->minoptionalcourses, 7);
+        $this->assertEquals($gradecurricular->maxoptionalcourses, 15);
+        $this->assertEquals($gradecurricular->optionalatonetime, 5);
 
-       $grade_curricular_courses = $this->update_grade_curricular_courses();
+        $gradecurricularcourses = $this->update_grade_curricular_courses();
 
-       foreach ($grade_curricular_courses as $course) {
-           $this->assertEquals($course->type, 1);
-           $this->assertEquals($course->workload, 100);
-           $this->assertEquals($course->inscribestartdate, make_timestamp(2016, 1, 7));
-           $this->assertEquals($course->inscribeenddate, make_timestamp(2016, 12, 25));
-       }
+        foreach ($gradecurricularcourses as $course) {
+            $this->assertEquals($course->type, 1);
+            $this->assertEquals($course->workload, 100);
+            $this->assertEquals($course->inscribestartdate, make_timestamp(2016, 1, 7));
+            $this->assertEquals($course->inscribeenddate, make_timestamp(2016, 12, 25));
+        }
 
-       $random_course = reset($grade_curricular_courses); //get the first element of this array
-       $random_course_key = key($grade_curricular_courses);
+        // Get the first element of this array.
+        $randomcourse = reset($gradecurricularcourses);
+        $randomcoursekey = key($gradecurricularcourses);
 
-       $DB->delete_records('course', array('id'=>$random_course->courseid)); //delete this course.
+        // Delete this course.
+        $DB->delete_records('course', array('id' => $randomcourse->courseid));
 
-       local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST); //Repeat the proccess to see if the course is erased from grade_curricular_courses table
+        // Repeat the proccess to see if the course is erased from grade_curricular_courses table.
+        local_grade_curricular::save_modules($context->id, $this->category, (object) $_POST);
 
-       $grade_curricular_courses = $this->update_grade_curricular_courses();
+        $gradecurricularcourses = $this->update_grade_curricular_courses();
 
-       $this->assertArrayNotHasKey($random_course_key, $grade_curricular_courses);
-   }
+        $this->assertArrayNotHasKey($randomcoursekey, $gradecurricularcourses);
+    }
 }
