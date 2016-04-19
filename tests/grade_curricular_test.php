@@ -90,7 +90,7 @@ class grade_curricular_test extends advanced_testcase {
 
         foreach ($courses as $course) {
             // Creating and enabling new completion for each course.
-            $this->completions_info[$course->id] = new completion_info($course);
+            $this->completionsinfo[$course->id] = new completion_info($course);
 
             $criteriadata = new stdClass();
             $criteriadata->id = $course->id;
@@ -122,7 +122,7 @@ class grade_curricular_test extends advanced_testcase {
     protected function complete_one_course($course, $student) {
         $this->setUser($student);
 
-        $completion = $this->completions_info[$course->courseid]->get_completions($student->id);
+        $completion = $this->completionsinfo[$course->courseid]->get_completions($student->id);
         $completion[0]->mark_complete(time()); // Como só temos um critério, só existe a posição zero.
 
         // Método alternativo para completude... core_completion_external::mark_course_self_completed($course->courseid).
@@ -315,7 +315,7 @@ class grade_curricular_test extends advanced_testcase {
 
         $this->assertTrue(is_array($completions));
         $this->assertContainsOnlyInstancesOf('completion_info', $completions);
-        $this->assertEquals(array_values($this->completions_info), array_values($completions));
+        $this->assertEquals(array_values($this->completionsinfo), array_values($completions));
     }
 
     public function test_get_approved_students_var() {
