@@ -115,6 +115,7 @@ class local_grade_curricular_modules_form extends moodleform {
         $mform->addElement('header', 'modules', "cursos Moodle");
         $mform->setExpanded('modules', false);
         $data = array();
+        $tablecounter = 1;
         foreach ($courses as $c) {
             $tab = new html_table();
             $tab->data = array();
@@ -147,9 +148,12 @@ class local_grade_curricular_modules_form extends moodleform {
                                  html_writer::select($courseoptions, "dependencies[$c->id]",
                                                      $c->coursedependencyid, false, $attributes));
 
+            $before = html_writer::start_tag('div', array('id'=>'table' . $tablecounter));
+            $after = html_writer::end_tag('div');
             $curl = new moodle_url('/course/view.php', array('id' => $c->id));
             $data[] = array(html_writer::link($curl, format_string($c->fullname), array('target' => '_new')),
-                            html_writer::table($tab));
+                            $before . html_writer::table($tab) . $after);
+            $tablecounter += 1;
         }
         $table = new html_table();
         $table->head  = array(get_string('coursename', 'local_grade_curricular'),
