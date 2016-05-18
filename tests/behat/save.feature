@@ -12,6 +12,10 @@ Feature: save grade curricular config
             | Course 1 | C101      | CAT1 |
             | Course 2 | C102      | CAT1 |
             | Course 3 | C103      | CAT1 |
+        And category "CAT1" is associeated with the following external activity:
+            | externalactivityid | externalactivityname | enable |
+            | 12                 | Test1                | 1      |
+
         And I log in as "admin"
         And I follow "Courses"
         And I follow "Category 1"
@@ -112,7 +116,9 @@ Feature: save grade curricular config
         And I follow "Grade curricular"
         And I follow "Configurações adicionais"
         And I follow "Expand all"
-        Then I set the field "id_inscricoesactivityid" to "0"
+
+        # Setting the form values
+        Then I set the field "id_inscricoesactivityid" to "1"
         And I set the field "id_studentcohortid" to "0"
         And I set the field "id_notecourseid" to "1"
         And I set the field "id_tutorroleid" to "1"
@@ -120,7 +126,9 @@ Feature: save grade curricular config
         Then I press "Save changes"
 
         When I follow "Expand all"
-        Then the field "id_studentcohortid" matches value "0"
+
+        # Checking the values
+        Then the field "id_inscricoesactivityid" matches value "Test1"
         And the field "id_studentcohortid" matches value "0"
         And the field "id_notecourseid" matches value "Course 1"
         And the field "id_tutorroleid" matches value "Manager"
