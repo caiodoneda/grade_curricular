@@ -7,7 +7,10 @@ Feature: save grade curricular config
         Given the following "categories" exist:
             | name       | category | idnumber |
             | Category 1 | 0        | CAT1     |
-        Given the following "courses" exist:
+        And the following "cohorts" exist:
+            | name       | reference | idnumber |
+            | Cohort1    | CAT1      | CAT1     |
+        And the following "courses" exist:
             | fullname | shortname | category |
             | Course 1 | C101      | CAT1 |
             | Course 2 | C102      | CAT1 |
@@ -108,7 +111,7 @@ Feature: save grade curricular config
         And the field with xpath "//*[@id='table3']/table/tbody/tr[3]/td[2]/select[6]" matches value "2020"
 
     @javascript
-    Scenario: configurações adicionais saving
+    Scenario: configurações adicionais saving with inscricoesactivityid
         When I log in as "admin"
         And I follow "Courses"
         And I follow "Category 1"
@@ -119,7 +122,6 @@ Feature: save grade curricular config
 
         # Setting the form values
         Then I set the field "id_inscricoesactivityid" to "1"
-        And I set the field "id_studentcohortid" to "0"
         And I set the field "id_notecourseid" to "1"
         And I set the field "id_tutorroleid" to "1"
 
@@ -129,6 +131,31 @@ Feature: save grade curricular config
 
         # Checking the values
         Then the field "id_inscricoesactivityid" matches value "Test1"
-        And the field "id_studentcohortid" matches value "0"
+        But I should not see "id_studentcohortid"
+        And the field "id_notecourseid" matches value "Course 1"
+        And the field "id_tutorroleid" matches value "Manager"
+
+    @javascript
+    Scenario: configurações adicionais saving with studentcohortid
+        When I log in as "admin"
+        And I follow "Courses"
+        And I follow "Category 1"
+        And I expand "Controle Curricular" node
+        And I follow "Grade curricular"
+        And I follow "Configurações adicionais"
+        And I follow "Expand all"
+
+        # Setting the form values
+        Then I set the field "id_studentcohortid" to "1"
+        And I set the field "id_notecourseid" to "1"
+        And I set the field "id_tutorroleid" to "1"
+
+        Then I press "Save changes"
+
+        When I follow "Expand all"
+
+        # Checking the values
+        Then the field "id_studentcohortid" matches value "Cohort1"
+        But I should not see "id_inscricoesactivityid"
         And the field "id_notecourseid" matches value "Course 1"
         And the field "id_tutorroleid" matches value "Manager"
