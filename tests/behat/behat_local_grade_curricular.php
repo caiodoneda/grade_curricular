@@ -38,11 +38,11 @@ class behat_local_grade_curricular extends behat_question_base {
     /**
      * @Given /^category "([^"]*)" is associeated with the following external activity:$/
      */
-    public function categoryIsAssocieatedWithTheFollowingExternalActivity($catname, TableNode $table) {
+    public function category_is_associeated_with_the_following_external_activity($catname, TableNode $table) {
         global $DB;
 
         $sql = "SELECT ctx.id
-                  FROM {context} AS ctx
+                  FROM {context} ctx
                   JOIN {course_categories} cc
                     ON (ctx.instanceid = cc.id)
                  WHERE cc.idnumber = :catname";

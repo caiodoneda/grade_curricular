@@ -148,7 +148,7 @@ class local_grade_curricular_modules_form extends moodleform {
                                  html_writer::select($courseoptions, "dependencies[$c->id]",
                                                      $c->coursedependencyid, false, $attributes));
 
-            $before = html_writer::start_tag('div', array('id'=>'table' . $tablecounter));
+            $before = html_writer::start_tag('div', array('id' => 'table' . $tablecounter));
             $after = html_writer::end_tag('div');
             $curl = new moodle_url('/course/view.php', array('id' => $c->id));
             $data[] = array(html_writer::link($curl, format_string($c->fullname), array('target' => '_new')),
