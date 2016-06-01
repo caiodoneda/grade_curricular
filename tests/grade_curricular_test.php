@@ -483,7 +483,7 @@ class grade_curricular_test extends advanced_testcase {
         $this->assertEquals($gradecurricular->notecourseid, 15);
     }
 
-    public function test_save_cfg_grade_missint_inscricoesactivityid_and_studentcohortid() {
+    public function test_save_cfg_grade_missing_inscricoesactivityid_and_studentcohortid() {
         $this->resetAfterTest(true);
 
         $this->setAdminUser();
