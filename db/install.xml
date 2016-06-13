@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/inscricoes/db" VERSION="20140302" COMMENT="XMLDB file for Moodle local/inscricoes"
+<XMLDB PATH="local/grade_curricular/db" VERSION="20140302" COMMENT="XMLDB file for Moodle local/grade_curricular"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="grade_curricular" COMMENT="inscricoes_reports">
+    <TABLE NAME="grade_curricular" COMMENT="grade curricular instances">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -24,7 +24,7 @@
         <INDEX NAME="inscfgr_ctx_ix" UNIQUE="false" FIELDS="contextid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="grade_curricular_courses" COMMENT="inscricoes_courses">
+    <TABLE NAME="grade_curricular_courses" COMMENT="grade curricular courses">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="gradecurricularid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -40,8 +40,8 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="inscou_grc_ix" UNIQUE="false" FIELDS="gradecurricularid"/>
-        <INDEX NAME="inscou_cou_ix" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="gc_id_ix" UNIQUE="false" FIELDS="gradecurricularid"/>
+        <INDEX NAME="gc_course_ix" UNIQUE="false" FIELDS="courseid"/>
       </INDEXES>
     </TABLE>
   </TABLES>
