@@ -217,9 +217,11 @@ class grade_curricular_test extends advanced_testcase {
         }
 
         try {
+            ob_start();
             completion_cron_mark_started();
             completion_cron_criteria();
             completion_cron_completions();
+            ob_end_clean();
         } catch (Exception $e) {
             var_dump($e);
         }
