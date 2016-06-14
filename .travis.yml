@@ -24,18 +24,18 @@ env:
   - DB=mysqli MOODLE_BRANCH=master
 
 before_install:
-  # Cloning the local_inscricoes.
-  - git clone https://gitlab.setic.ufsc.br/moodle-ufsc/local_inscricoes.git local/inscricoes
-
-  # Running the scripts to install and upgrade the database
-  - php admin/cli/install_database.php --agree-license --adminpass=Password --adminemail=admin@example.com --fullname="Upgrade test" --shortname=Upgrade;
-  - php admin/cli/upgrade.php --non-interactive --allow-unstable ;
-
   - phpenv config-rm xdebug.ini
   - cd ../..
   - composer selfupdate
   - composer create-project -n --no-dev moodlerooms/moodle-plugin-ci ci ^1
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
+
+  # Cloning the local_inscricoes.
+  - git clone https://github.com/UFSC/moodle-local-inscricoes.git local/inscricoes
+
+  # Running the scripts to install and upgrade the database
+  - php admin/cli/install_database.php --agree-license --adminpass=Password --adminemail=admin@example.com --fullname="Upgrade test" --shortname=Upgrade;
+  - php admin/cli/upgrade.php --non-interactive --allow-unstable ;
 
 install:
   - moodle-plugin-ci install
