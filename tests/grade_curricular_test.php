@@ -86,8 +86,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     protected function create_courses_completions($courses) {
-        global $CFG;
-
         foreach ($courses as $course) {
             // Creating and enabling new completion for each course.
             $this->completionsinfo[$course->id] = new completion_info($course);
@@ -147,7 +145,7 @@ class grade_curricular_test extends advanced_testcase {
         try {
             $gradeid = $DB->insert_record('grade_curricular', $record);
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
 
         return $DB->get_record('grade_curricular', array('id' => $gradeid));
@@ -165,7 +163,7 @@ class grade_curricular_test extends advanced_testcase {
         try {
             $DB->delete_records('grade_curricular_courses'); // Cleaning the table.
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
 
         $record = new stdClass();
@@ -183,7 +181,7 @@ class grade_curricular_test extends advanced_testcase {
             try {
                 $DB->insert_record('grade_curricular_courses', $record);
             } catch (Exception $e) {
-                var_dump($e);
+                echo $e;
             }
         }
 
@@ -194,7 +192,7 @@ class grade_curricular_test extends advanced_testcase {
             try {
                 $DB->insert_record('grade_curricular_courses', $record);
             } catch (Exception $e) {
-                var_dump($e);
+                echo $e;
             }
         }
 
@@ -213,7 +211,7 @@ class grade_curricular_test extends advanced_testcase {
         try {
             purge_all_caches();
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
 
         try {
@@ -223,7 +221,7 @@ class grade_curricular_test extends advanced_testcase {
             completion_cron_completions();
             ob_end_clean();
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
     }
 
@@ -236,15 +234,15 @@ class grade_curricular_test extends advanced_testcase {
         try {
             $DB->execute($sql, array(null, -1));
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
     }
 
     public function test_get_courses() {
         $this->resetAfterTest(true);
 
-        $this->create_courses($amount = 10);
-        $this->associate_courses_to_grade_curricular($this->courses, $optative = 5, $mandatory = 5);
+        $this->create_courses(10);
+        $this->associate_courses_to_grade_curricular($this->courses, 5, 5);
 
         $courses = local_grade_curricular::get_courses($this->gradecurricular->id);
 
@@ -283,7 +281,7 @@ class grade_curricular_test extends advanced_testcase {
             $this->gradecurricular->studentcohortid = $cohort->id;
             $DB->update_record('grade_curricular', $this->gradecurricular);
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
 
         $students = local_grade_curricular::get_students($this->gradecurricular->id, '', 'id');
@@ -306,7 +304,7 @@ class grade_curricular_test extends advanced_testcase {
     public function test_get_completions_info() {
         $this->resetAfterTest(true);
 
-        $this->create_courses($amount = 2);
+        $this->create_courses(2);
         $this->create_courses_completions($this->courses);
 
         foreach ($this->completionsinfo as $key => $ci) {
@@ -321,8 +319,6 @@ class grade_curricular_test extends advanced_testcase {
     }
 
     public function test_get_approved_students_var() {
-        global $DB;
-
         $this->resetAfterTest(true);
 
         $optcoursesamount = [3, 2, 0];
@@ -352,7 +348,7 @@ class grade_curricular_test extends advanced_testcase {
         try {
             $DB->set_field('grade_curricular', 'minoptionalcourses', $minoptative, array('id' => $this->gradecurricular->id));
         } catch (Exception $e) {
-            var_dump($e);
+            echo $e;
         }
     }
 
@@ -514,8 +510,8 @@ class grade_curricular_test extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $this->setAdminUser();
-        $this->create_courses($amount = 6);
-        $this->associate_courses_to_grade_curricular($this->courses, $optative = 3, $mandatory = 3);
+        $this->create_courses(6);
+        $this->associate_courses_to_grade_curricular($this->courses, 3, 3);
 
         $context = context_coursecat::instance($this->category->id);
 

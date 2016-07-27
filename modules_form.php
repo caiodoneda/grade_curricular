@@ -27,7 +27,7 @@ require_once("./classes/grade_curricular.php");
 
 class local_grade_curricular_modules_form extends moodleform {
     public function definition() {
-        global $CFG, $DB, $PAGE;
+        global $DB;
 
         $mform = $this->_form;
         $grade = $this->_customdata['grade'];
@@ -178,7 +178,6 @@ class local_grade_curricular_modules_form extends moodleform {
             $errors['minoptionalcourses'] = get_string('minoptionalcourseserror', 'local_grade_curricular');
         }
 
-        $gradecurricularid = required_param('gradecurricularid', PARAM_INT);
         $coursestype = required_param_array('type', PARAM_INT);
 
         $countopt = 0;

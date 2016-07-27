@@ -88,10 +88,10 @@ class local_grade_curricular {
                      JOIN {grade_curricular_courses} gcc
                        ON (gcc.gradecurricularid = gc.id AND gcc.type != :ignore)
                      JOIN {cohort_members} chm
+                       ON (chm.cohortid = :cohortid)
                      JOIN {user} u
                        ON (u.id = chm.userid AND u.deleted = 0)";
-            $where = "WHERE gc.id = :gradeid
-                        AND chm.cohortid = :cohortid";
+            $where = "WHERE gc.id = :gradeid";
             $params = array('cohortid' => $grade->studentcohortid,
                             'gradeid'  => $gradeid,
                             'ignore'   => GC_IGNORE);
@@ -106,7 +106,7 @@ class local_grade_curricular {
                      JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
                      JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
                      JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$insql})
-                     JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
+                     JOIN {user} u ON (u.id = ra.userid AND u.deleted = 0)";
             $where = "WHERE gc.id = :gradeid";
             $params['contextlevel'] = CONTEXT_COURSE;
             $params['gradeid'] = $gradeid;
@@ -133,11 +133,11 @@ class local_grade_curricular {
         // Distinct é necessário devido ao fato de um usuário poder ter mais de um role_assignment em um cursos,
         // inclusive com o mesmo papel.
         $userfields = implode(',', get_all_user_name_fields());
-        $sql = "SELECT DISTINCT u.id, u.username, {$userfields}, CONCAT(u.firstname, ' ', u.lastname) as fullname
-                 {$from}
-                 {$joingroup}
-                 {$where}
-                ORDER BY {$orderby}";
+        $sql = "SELECT DISTINCT u.id, u.username, {$userfields}, CONCAT(u.firstname, ' ', u.lastname) as fullname " .
+                 $from . " " .
+                 $joingroup . " " .
+                 $where . " " .
+                "ORDER BY " . $orderby;
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -209,7 +209,7 @@ class local_grade_curricular {
                      JOIN {cohort_members} chm
                      JOIN {user} u
                        ON (u.id = chm.userid AND u.deleted = 0)";
-            $where = "WHERE gc.id = :gradeid
+            $where = " WHERE gc.id = :gradeid
                         AND chm.cohortid = :cohortid";
             $params = array('cohortid' => $grade->studentcohortid,
                 'gradeid'  => $gradeid,
@@ -225,8 +225,8 @@ class local_grade_curricular {
                      JOIN {course} c ON (c.id = gcc.courseid AND c.category = cc.id)
                      JOIN {context} ctx ON (ctx.instanceid = gcc.courseid AND ctx.contextlevel = :contextlevel)
                      JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.roleid {$insql})
-                     JOIN user u ON (u.id = ra.userid AND u.deleted = 0)";
-            $where = "WHERE gc.id = :gradeid";
+                     JOIN {user} u ON (u.id = ra.userid AND u.deleted = 0)";
+            $where = " WHERE gc.id = :gradeid";
             $params['contextlevel'] = CONTEXT_COURSE;
             $params['gradeid'] = $gradeid;
             $params['ignore'] = GC_IGNORE;

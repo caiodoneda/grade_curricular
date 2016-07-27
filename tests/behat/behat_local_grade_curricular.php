@@ -24,7 +24,6 @@
 // NOTE: no MOODLE_INTERNAL test here, this file may be required by behat before including /config.php.
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
-require_once(__DIR__ . '/../../../../question/tests/behat/behat_question_base.php');
 
 use Behat\Behat\Context\Step\Given as Given,
     Behat\Gherkin\Node\TableNode as TableNode,
@@ -34,13 +33,51 @@ use Behat\Behat\Context\Step\Given as Given,
  * Steps definitions related to local_grade_curricular.
  *
  */
-class behat_local_grade_curricular extends behat_question_base {
+class behat_local_grade_curricular extends behat_base {
     /**
      * @Given /^category "([^"]*)" is associeated with the following external activity:$/
      */
-    public function category_is_associeated_with_the_following_external_activity($catname, TableNode $table) {
-        global $DB;
+    // public function category_is_associated_with_the_following_external_activity($catname, TableNode $table) {
+    //     global $DB;
 
+    //     $sql = "SELECT ctx.id
+    //               FROM {context} ctx
+    //               JOIN {course_categories} cc
+    //                 ON (ctx.instanceid = cc.id)
+    //              WHERE cc.idnumber = :catname";
+
+    //     $ctxid = $DB->get_field_sql($sql, array('catname' => $catname));
+
+    //     $row1 = $table->getRow(0);
+    //     $row2 = $table->getRow(1);
+
+    //     $record = new stdClass();
+    //     $record->contextid = $ctxid;
+
+    //     foreach ($row1 as $key => $value) {
+    //         $record->$value = $row2[$key];
+    //     }
+
+    //     $record->timecreated = time();
+
+    //     $DB->insert_record('inscricoes_activities', $record);
+
+    //     // Creating fake record.
+
+    //     $record2 = new stdClass();
+    //     $record2->plugin = "local_inscricoes";
+    //     $record2->name = "version";
+    //     $record2->value = "2015040700";
+
+    //     $DB->insert_record('config_plugins', $record2);
+    // }
+
+    /**
+     * @Given /^create a new grade curricular at "([^"]*)" category:$/
+     */
+    public function create_a_new_grade_curricular_at_category($catname) {
+        global $DB;
+        
         $sql = "SELECT ctx.id
                   FROM {context} ctx
                   JOIN {course_categories} cc
@@ -49,18 +86,17 @@ class behat_local_grade_curricular extends behat_question_base {
 
         $ctxid = $DB->get_field_sql($sql, array('catname' => $catname));
 
-        $row1 = $table->getRow(0);
-        $row2 = $table->getRow(1);
-
         $record = new stdClass();
         $record->contextid = $ctxid;
+        $record->minoptionalcourses = 0;
+        $record->maxoptionalcourses = 0;
+        $record->optionalatonetime = 0;
+        $record->inscricoesactivityid = 0;
+        $record->tutorroleid = 0;
+        $record->studentcohortid = 0;
+        $record->notecourseid = 0;
+        $record->timemodified = time();
 
-        foreach ($row1 as $key => $value) {
-            $record->$value = $row2[$key];
-        }
-
-        $record->timecreated = time();
-
-        $DB->insert_record('inscricoes_activities', $record);
+        $DB->insert_record('grade_curricular', $record);
     }
 }

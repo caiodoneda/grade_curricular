@@ -41,8 +41,6 @@ Feature: Create a grade curricular,
         And I should see "Course 3"
         When I follow "Configurações adicionais"
         And I follow "Expand all"
-        Then I should see "Atividade no Sistema de Inscrições:"
-        And the field "inscricoesactivityid" matches value "-- Não relacionar a atividade"
         Then I should see "Coorte de estudantes:"
         And the field "studentcohortid" matches value "-- Nenhum cohort selecionado"
         Then I should see "curso Moodle onde serão guardadas as anotações dos tutores:"

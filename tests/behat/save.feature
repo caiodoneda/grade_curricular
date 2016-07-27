@@ -15,17 +15,7 @@ Feature: save grade curricular config
             | Course 1 | C101      | CAT1 |
             | Course 2 | C102      | CAT1 |
             | Course 3 | C103      | CAT1 |
-        And category "CAT1" is associeated with the following external activity:
-            | externalactivityid | externalactivityname | enable |
-            | 12                 | Test1                | 1      |
-
-        And I log in as "admin"
-        And I follow "Courses"
-        And I follow "Category 1"
-        And I expand "Controle Curricular" node
-        And I follow "Grade curricular"
-        And I press "Continue"
-        And I log out
+        And create a new grade curricular at "CAT1" category:       
 
     @javascript
     Scenario: configuração dos cursos Moodle saving
@@ -111,32 +101,7 @@ Feature: save grade curricular config
         And the field with xpath "//*[@id='table3']/table/tbody/tr[3]/td[2]/select[6]" matches value "2020"
 
     @javascript
-    Scenario: configurações adicionais saving with inscricoesactivityid
-        When I log in as "admin"
-        And I follow "Courses"
-        And I follow "Category 1"
-        And I expand "Controle Curricular" node
-        And I follow "Grade curricular"
-        And I follow "Configurações adicionais"
-        And I follow "Expand all"
-
-        # Setting the form values
-        Then I set the field "id_inscricoesactivityid" to "1"
-        And I set the field "id_notecourseid" to "1"
-        And I set the field "id_tutorroleid" to "1"
-
-        Then I press "Save changes"
-
-        When I follow "Expand all"
-
-        # Checking the values
-        Then the field "id_inscricoesactivityid" matches value "Test1"
-        But I should not see "id_studentcohortid"
-        And the field "id_notecourseid" matches value "Course 1"
-        And the field "id_tutorroleid" matches value "Manager"
-
-    @javascript
-    Scenario: configurações adicionais saving with studentcohortid
+    Scenario: configurações adicionais saving
         When I log in as "admin"
         And I follow "Courses"
         And I follow "Category 1"
@@ -156,6 +121,5 @@ Feature: save grade curricular config
 
         # Checking the values
         Then the field "id_studentcohortid" matches value "Cohort1"
-        But I should not see "id_inscricoesactivityid"
         And the field "id_notecourseid" matches value "Course 1"
         And the field "id_tutorroleid" matches value "Manager"

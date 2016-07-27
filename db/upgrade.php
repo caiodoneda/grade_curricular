@@ -41,7 +41,7 @@
  */
 
 function xmldb_local_grade_curricular_upgrade($oldversion) {
-    global $CFG, $DB, $OUTPUT;
+    global $DB;
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
