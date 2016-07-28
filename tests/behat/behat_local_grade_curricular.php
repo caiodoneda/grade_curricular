@@ -35,49 +35,11 @@ use Behat\Behat\Context\Step\Given as Given,
  */
 class behat_local_grade_curricular extends behat_base {
     /**
-     * @Given /^category "([^"]*)" is associeated with the following external activity:$/
-     */
-    // public function category_is_associated_with_the_following_external_activity($catname, TableNode $table) {
-    //     global $DB;
-
-    //     $sql = "SELECT ctx.id
-    //               FROM {context} ctx
-    //               JOIN {course_categories} cc
-    //                 ON (ctx.instanceid = cc.id)
-    //              WHERE cc.idnumber = :catname";
-
-    //     $ctxid = $DB->get_field_sql($sql, array('catname' => $catname));
-
-    //     $row1 = $table->getRow(0);
-    //     $row2 = $table->getRow(1);
-
-    //     $record = new stdClass();
-    //     $record->contextid = $ctxid;
-
-    //     foreach ($row1 as $key => $value) {
-    //         $record->$value = $row2[$key];
-    //     }
-
-    //     $record->timecreated = time();
-
-    //     $DB->insert_record('inscricoes_activities', $record);
-
-    //     // Creating fake record.
-
-    //     $record2 = new stdClass();
-    //     $record2->plugin = "local_inscricoes";
-    //     $record2->name = "version";
-    //     $record2->value = "2015040700";
-
-    //     $DB->insert_record('config_plugins', $record2);
-    // }
-
-    /**
      * @Given /^create a new grade curricular at "([^"]*)" category:$/
      */
     public function create_a_new_grade_curricular_at_category($catname) {
         global $DB;
-        
+
         $sql = "SELECT ctx.id
                   FROM {context} ctx
                   JOIN {course_categories} cc
